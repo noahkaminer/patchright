@@ -60,6 +60,13 @@ Patchright tweaks the Playwright Default Args to avoid detection by Command Flag
 ### General Leaks
 Patchright patches some general leaks in the Playwright codebase. This mainly includes poor setups and obvious detection points.
 
+### Closed Shadow Roots
+Patchright is able to interact with elements in Closed Shadow Roots. Just use normal locators and Patchright will do the rest.
+
+> [!WARNING]  
+> **XPath** locators are **not supported** in Closed Shadow Roots (CSR). This isnt a limitation of Patchright, but of Chromium itself.
+> Furthermore, some functionalities like Element Counts **might be off** because **Evaluation of CSR-Locators** happens in an **Isolated World**.
+
 ---
 
 ## Stealth

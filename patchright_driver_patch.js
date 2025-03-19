@@ -629,6 +629,387 @@ methodText.split("\n").forEach((line, index) => {
 // Update the method's text
 setContentMethod.replaceWithText(newMethodText);
 
+// -- _retryWithProgressIfNotConnected Method --
+const retryWithProgressIfNotConnectedMethod = frameClass.getMethod("_retryWithProgressIfNotConnected");
+retryWithProgressIfNotConnectedMethod.addParameter({
+    name: "returnAction",
+    type: "boolean | undefined",
+});
+retryWithProgressIfNotConnectedMethod.setBodyText(`progress.log("waiting for " + this._asLocator(selector));
+return this.retryWithProgressAndTimeouts(progress, [0, 20, 50, 100, 100, 500], async continuePolling => {
+  if (performActionPreChecks) await this._page.performActionPreChecks(progress);
+  const resolved = await this.selectors.resolveInjectedForSelector(selector, {
+    strict
+  });
+  progress.throwIfAborted();
+  if (!resolved) {
+    if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
+    return continuePolling;
+  }
+
+  try {
+    var client = this._page._delegate._sessionForFrame(resolved.frame)._client;
+  } catch (e) {
+    var client = this._page._delegate._mainFrameSession._client;
+  }
+  var context = await resolved.frame._context("main");
+
+  const documentNode = await client.send('Runtime.evaluate', {
+    expression: "document",
+    serializationOptions: {
+      serialization: "idOnly"
+    },
+    contextId: context.delegate._contextId,
+  });
+  const documentScope = new dom.ElementHandle(context, documentNode.result.objectId);
+
+  const currentScopingElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, resolved.info.parsed);
+  if (currentScopingElements.length == 0) {
+    // TODO: Dispose?
+    if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
+    return continuePolling;
+  }
+  const resultElement = currentScopingElements[0];
+  if (currentScopingElements.length > 1) {
+    if (resolved.info.strict) {
+      await resolved.injected.evaluateHandle((injected, {
+        info,
+        elements
+      }) => {
+        throw injected.strictModeViolationError(info.parsed, elements);
+      }, {
+        info: resolved.info,
+        elements: currentScopingElements
+      });
+    }
+    progress.log("  locator resolved to " + currentScopingElements.length + " elements. Proceeding with the first one: " + resultElement.preview());
+  } else if (resultElement) {
+    progress.log("  locator resolved to " + resultElement.preview());
+  }
+
+  try {
+    var result = null;
+    if (returnAction === 'returnAll') {
+      result = await action([resultElement, currentScopingElements]);
+    } else {
+      result = await action(resultElement);
+    }
+    if (result === 'error:notconnected') {
+      progress.log('element was detached from the DOM, retrying');
+      return continuePolling;
+    } else if (result === 'internal:continuepolling') {
+      return continuePolling;
+    }
+    return result;
+  } finally { }
+});`);
+
+// -- waitForSelectorInternal Method --
+const waitForSelectorInternalMethod = frameClass.getMethod("waitForSelectorInternal");
+waitForSelectorInternalMethod.setBodyText(`const {
+  state = 'visible'
+} = options;
+const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, true, async handle => {
+  const attached = !!handle;
+  var visible = false;
+  if (attached) {
+    if (handle.parentNode.constructor.name == "ElementHandle") {
+      visible = await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
+        return handle ? injected.utils.isElementVisible(handle) : false;
+      }, {
+        handle
+      });
+    } else {
+      visible = await handle.parentNode.evaluate((injected, { handle }) => {
+        return handle ? injected.utils.isElementVisible(handle) : false;
+      }, {
+        handle
+      });
+    }
+  }
+
+  const success = {
+    attached,
+    detached: !attached,
+    visible,
+    hidden: !visible
+  }[state];
+  if (!success) {
+    return "internal:continuepolling";
+  }
+  if (options.omitReturnValue) {
+    return null;
+  }
+  const element = state === 'attached' || state === 'visible' ? handle : null;
+  if (!element) return null;
+  if (options.__testHookBeforeAdoptNode) await options.__testHookBeforeAdoptNode();
+  try {
+    return element;
+  } catch (e) {
+    return "internal:continuepolling";
+  }
+}, 'returnOnNotResolved');
+return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;`)
+
+// -- isVisibleInternal Method --
+const isVisibleInternalMethod = frameClass.getMethod("isVisibleInternal");
+isVisibleInternalMethod.setBodyText(`try {
+  const custom_metadata = { "internal": false, "log": [] };
+  const controller = new ProgressController(custom_metadata, this);
+  return await controller.run(async progress => {
+    progress.log("waiting for " + this._asLocator(selector));
+    const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
+      if (handle.parentNode.constructor.name == "ElementHandle") {
+        return await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
+          const state = handle ? injected.elementState(handle, 'visible') : {
+            matches: false,
+            received: 'error:notconnected'
+          };
+          return state.matches;
+        }, { handle });
+      } else {
+        return await handle.parentNode.evaluate((injected, { handle }) => {
+          const state = handle ? injected.elementState(handle, 'visible') : {
+            matches: false,
+            received: 'error:notconnected'
+          };
+          return state.matches;
+        }, { handle });
+      }
+    });
+
+    return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
+  }, 100); // A bit geeky but its okay :D
+} catch (e) {
+  if (js.isJavaScriptErrorInEvaluate(e) || (0, _selectorParser.isInvalidSelectorError)(e) || (0, _protocolError.isSessionClosedError)(e)) throw e;
+  return false;
+}`)
+
+// -- _expectInternal Method --
+const expectInternalMethod = frameClass.getMethod("_expectInternal");
+expectInternalMethod.setBodyText(`progress.log("waiting for " + this._asLocator(selector));
+const isArray = options.expression === 'to.have.count' || options.expression.endsWith('.array');
+
+const promise = await this._retryWithProgressIfNotConnected(progress, selector, !isArray, false, async result => {
+  const handle = result[0];
+  const handles = result[1];
+
+  if (handle.parentNode.constructor.name == "ElementHandle") {
+    return await handle.parentNode.evaluateInUtility(async ([injected, node, { handle, options, handles }]) => {
+      return await injected.expect(handle, options, handles);
+    }, { handle, options, handles });
+  } else {
+    return await handle.parentNode.evaluate(async (injected, { handle, options, handles }) => {
+      return await injected.expect(handle, options, handles);
+    }, { handle, options, handles });
+  }
+}, 'returnAll');
+
+// Default Values, if no Elements found
+var matches = false;
+var received = 0;
+var missingReceived = null;
+if (promise) {
+  matches = promise.matches;
+  received = promise.received;
+  missingReceived = promise.missingReceived;
+} else if (options.expectedNumber === 0) {
+  matches = true;
+}
+
+// Note: missingReceived avoids unexpected value "undefined" when element was not found.
+if (matches === options.isNot) {
+  lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
+  lastIntermediateResult.isSet = true;
+  if (!missingReceived && !Array.isArray(received)) progress.log('  unexpected value "' + renderUnexpectedValue(options.expression, received) + '"');
+}
+return {
+  matches,
+  received
+};`)
+
+// -- _callOnElementOnceMatches Method --
+const callOnElementOnceMatchesMethod = frameClass.getMethod("_callOnElementOnceMatches");
+callOnElementOnceMatchesMethod.setBodyText(`const callbackText = body.toString();
+const controller = new ProgressController(metadata, this);
+return controller.run(async progress => {
+  progress.log("waiting for "+ this._asLocator(selector));
+  const promise = this._retryWithProgressIfNotConnected(progress, selector, false, false, async handle => {
+    if (handle.parentNode.constructor.name == "ElementHandle") {
+      return await handle.parentNode.evaluateInUtility(([injected, node, { callbackText, handle, taskData }]) => {
+        const callback = injected.eval(callbackText);
+        return callback(injected, handle, taskData);
+      }, {
+        callbackText,
+        handle,
+        taskData
+      });
+    } else {
+      return await handle.parentNode.evaluate((injected, { callbackText, handle, taskData }) => {
+        const callback = injected.eval(callbackText);
+        return callback(injected, handle, taskData);
+      }, {
+        callbackText,
+        handle,
+        taskData
+      });
+    }
+  });
+  return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
+}, this._page._timeoutSettings.timeout(options));`)
+
+// -- _customFindElementsByParsed Method --
+frameClass.addMethod({
+  name: "_customFindElementsByParsed",
+  isAsync: true,
+  parameters: [
+    { name: "resolved" },
+    { name: "client" },
+    { name: "context" },
+    { name: "documentScope" },
+    { name: "progress" },
+    { name: "parsed" },
+  ],
+});
+const customFindElementsByParsedMethod = frameClass.getMethod("_customFindElementsByParsed");
+customFindElementsByParsedMethod.setBodyText(`var parsedEdits = { ...parsed };
+// Note: We start scoping at document level
+var currentScopingElements = [documentScope];
+while (parsed.parts.length > 0) {
+  var part = parsed.parts.shift();
+  parsedEdits.parts = [part];
+  var isUsingXPath = false;
+  // Getting All Elements
+  var elements = [];
+  var elementsIndexes = [];
+
+  if (part.name == "xpath") {
+    isUsingXPath = true;
+  } else if (part.name == "nth") {
+    const partNth = Number(part.body);
+    if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
+      return continuePolling;
+    } else {
+      currentScopingElements = [currentScopingElements.at(partNth)];
+      continue;
+    }
+  } else if (part.name == "internal:or") {
+    var orredElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, part.body.parsed);
+    elements = currentScopingElements.concat(orredElements);
+  } else if (part.name == "internal:and") {
+    var andedElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, part.body.parsed);
+    const backendNodeIds = new Set(andedElements.map(item => item.backendNodeId));
+    elements = currentScopingElements.filter(item => backendNodeIds.has(item.backendNodeId));
+  } else {
+    for (const scope of currentScopingElements) {
+      const describedScope = await client.send('DOM.describeNode', {
+        objectId: scope._objectId,
+        depth: -1,
+        pierce: true
+      });
+
+      // Elements Queryed in the "current round"
+      var queryingElements = [];
+
+      if (!isUsingXPath) {
+        function findClosedShadowRoots(node, results = []) {
+          if (!node || typeof node !== 'object') return results;
+          if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
+            for (const shadowRoot of node.shadowRoots) {
+              if (shadowRoot.shadowRootType === 'closed' && shadowRoot.backendNodeId) {
+                results.push(shadowRoot.backendNodeId);
+              }
+              findClosedShadowRoots(shadowRoot, results);
+            }
+          }
+          if (node.nodeName !== 'IFRAME' && node.children && Array.isArray(node.children)) {
+            for (const child of node.children) {
+              findClosedShadowRoots(child, results);
+            }
+          }
+          return results;
+        }
+
+        var shadowRootBackendIds = findClosedShadowRoots(describedScope.node);
+        var shadowRoots = [];
+        for (var shadowRootBackendId of shadowRootBackendIds) {
+          var resolvedShadowRoot = await client.send('DOM.resolveNode', {
+            backendNodeId: shadowRootBackendId,
+            contextId: context.delegate._contextId
+          });
+          shadowRoots.push(new dom.ElementHandle(context, resolvedShadowRoot.object.objectId));
+        }
+
+        for (var shadowRoot of shadowRoots) {
+          const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed, callId }]) => {
+            const elements = injected.querySelectorAll(parsed, node);
+            if (callId) injected.markTargetElements(new Set(elements), callId);
+            return elements
+          }, {
+            parsed: parsedEdits,
+            callId: progress.metadata.id
+          });
+
+          const shadowElementsAmount = await shadowElements.getProperty("length");
+          queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
+        }
+      }
+
+      // Document Root Elements (not in CSR)
+      const rootElements = await scope.evaluateHandleInUtility(([injected, node, { parsed, callId }]) => {
+        const elements = injected.querySelectorAll(parsed, node);
+        if (callId) injected.markTargetElements(new Set(elements), callId);
+        return elements
+      }, {
+        parsed: parsedEdits,
+        callId: progress.metadata.id
+      });
+      const rootElementsAmount = await rootElements.getProperty("length");
+      queryingElements.push([rootElements, rootElementsAmount, resolved.injected]);
+
+      // Querying and Sorting the elements by their backendNodeId
+      for (var queryedElement of queryingElements) {
+        var elementsToCheck = queryedElement[0];
+        var elementsAmount = await queryedElement[1].jsonValue();
+        var parentNode = queryedElement[2];
+        for (var i = 0; i < elementsAmount; i++) {
+          if (parentNode.constructor.name == "ElementHandle") {
+            var elementToCheck = await parentNode.evaluateHandleInUtility(([injected, node, { index, elementsToCheck }]) => { return elementsToCheck[index]; }, { index: i, elementsToCheck: elementsToCheck });
+          } else {
+            var elementToCheck = await parentNode.evaluateHandle((injected, { index, elementsToCheck }) => { return elementsToCheck[index]; }, { index: i, elementsToCheck: elementsToCheck });
+          }
+          // For other Functions/Utilities
+          elementToCheck.parentNode = parentNode;
+          var resolvedElement = await client.send('DOM.describeNode', {
+            objectId: elementToCheck._objectId,
+            depth: -1,
+          });
+          // Note: Possible Bug, Maybe well actually have to check the Documents Node Position instead of using the backendNodeId
+          elementToCheck.backendNodeId = resolvedElement.node.backendNodeId;
+          elements.push(elementToCheck);
+        }
+      }
+    }
+  }
+  // Setting currentScopingElements to the elements we just queried
+  currentScopingElements = [];
+  for (var element of elements) {
+    var elemIndex = element.backendNodeId;
+    // Sorting the Elements by their occourance in the DOM
+    var elemPos = elementsIndexes.findIndex(index => index > elemIndex);
+
+    // Sort the elements by their backendNodeId
+    if (elemPos === -1) {
+      currentScopingElements.push(element);
+      elementsIndexes.push(elemIndex);
+    } else {
+      currentScopingElements.splice(elemPos, 0, element);
+      elementsIndexes.splice(elemPos, 0, elemIndex);
+    }
+  }
+}
+return currentScopingElements;`);
+
 // ----------------------------
 // server/chromium/crPage.ts
 // ----------------------------
