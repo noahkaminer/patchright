@@ -322,7 +322,8 @@ if (constructorDeclaration) {
     }
     let injectionHTML = "";
     allInjections.forEach((script) => {
-      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">\${script.source}</script>\`;
+      let scriptId = _crypto.default.randomBytes(22).toString('hex');
+      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${script.source}</script>\`;
     });
     if (response.isBase64) {
       response.isBase64 = false;
@@ -1043,7 +1044,7 @@ const statementToReplace = crPageConstructor
 if (statementToReplace) {
   // Replace the statement with the new code
   statementToReplace.replaceWithText(`this._networkManager.setRequestInterception(true);
-this.initScriptTag = "injected-playwright-init-script-" + crypto.randomBytes(20).toString('hex');`);
+this.initScriptTag = crypto.randomBytes(20).toString('hex');`);
 }
 
 // -- exposeBinding Method --
