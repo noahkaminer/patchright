@@ -236,6 +236,14 @@ crNetworkManagerSourceFile.insertStatements(0, [
 // ------- CRNetworkManager Class -------
 const crNetworkManagerClass =
   crNetworkManagerSourceFile.getClass("CRNetworkManager");
+crNetworkManagerClass.addProperties([
+  {
+    name: "_alreadyTrackedNetworkIds",
+    type: "Set<string>",
+    initializer: "new Set()",
+  },
+]);
+
 // -- _onRequest Method --
 const onRequestMethod = crNetworkManagerClass.getMethod("_onRequest");
 // Find the assignment statement you want to modify
@@ -253,7 +261,7 @@ if (routeAssignment) {
   routeAssignment
     .getRight()
     .replaceWithText(
-      "new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId, this._page)",
+      "new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId, this._page, requestPausedEvent.networkId, this)",
     );
 }
 
@@ -266,6 +274,20 @@ updateProtocolRequestInterceptionForSessionMethod.getStatements().forEach((state
   if (text.includes('const cachePromise = info.session.send(\'Network.setCacheDisabled\', { cacheDisabled: enabled });'))
     statement.replaceWithText('const cachePromise = info.session.send(\'Network.setCacheDisabled\', { cacheDisabled: false });');
 });
+
+// -- _handleRequestRedirect Method --
+const handleRequestRedirectMethod = crNetworkManagerClass.getMethod("_handleRequestRedirect");
+handleRequestRedirectMethod.setBodyText('return;')
+
+// -- _onRequest Method --
+const crOnRequestMethod = crNetworkManagerClass.getMethod("_onRequest");
+const crOnRequestMethodBody = crOnRequestMethod.getBody();
+crOnRequestMethodBody.insertStatements(0, 'if (this._alreadyTrackedNetworkIds.has(requestWillBeSentEvent.initiator.requestId)) return;')
+
+// -- _onRequestPaused Method --
+const onRequestPausedMethod = crNetworkManagerClass.getMethod("_onRequestPaused");
+const onRequestPausedMethodBody = onRequestPausedMethod.getBody();
+onRequestPausedMethodBody.insertStatements(0, 'if (this._alreadyTrackedNetworkIds.has(event.networkId)) return;')
 
 // ------- RouteImpl Class -------
 const routeImplClass = crNetworkManagerSourceFile.getClass("RouteImpl");
@@ -283,57 +305,135 @@ if (constructorDeclaration) {
   // Adding the 'page' parameter
   constructorDeclaration.insertParameter(parameters.length, {
     name: "page",
-    type: "Page", // Replace with the actual type of 'page' if different
+    type: "Page"
+  });
+  constructorDeclaration.insertParameter(parameters.length+1, {
+    name: "networkId",
+  });
+  constructorDeclaration.insertParameter(parameters.length+2, {
+    name: "sessionManager",
   });
   // Modify the constructor's body to include `this._page = page;`
   const body = constructorDeclaration.getBody();
-  // Insert `this._page = void 0;`
   body.insertStatements(0, "this._page = void 0;");
-  // Insert `this._page = page;` at the end of the constructor body
+  body.insertStatements(0, "this._networkId = void 0;");
+  body.insertStatements(0, "this._sessionManager = void 0;");
   body.addStatements("this._page = page;");
-  // Inject HTML code
-  const fulfillMethod = routeImplClass.getMethodOrThrow("fulfill");
-  const methodBody = fulfillMethod.getBodyOrThrow();
-  // Insert the custom code at the beginning of the `fulfill` method
-  const customHTMLInjectCode = `const isTextHtml = response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
-  var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
-      for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
-        if (!allInjections.includes(binding)) allInjections.push(binding);
-      }
-  if (isTextHtml && allInjections.length) {
-    // I Chatted so hard for this Code
-    let scriptNonce = crypto.randomBytes(22).toString('hex');
-    for (let i = 0; i < response.headers.length; i++) {
-      if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
-        // Search for an existing script-src nonce that we can hijack
-        let cspValue = response.headers[i].value;
-        const nonceRegex = /script-src[^;]*'nonce-([\\w-]+)'/;
-        const nonceMatch = cspValue.match(nonceRegex);
-        if (nonceMatch) {
-          scriptNonce = nonceMatch[1];
-        } else {
-          // Add the new nonce value to the script-src directive
-          const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
-          const newCspValue = cspValue.replace(scriptSrcRegex, \`$1 'nonce-\${scriptNonce}'$2\`);
-          response.headers[i].value = newCspValue;
-        }
-        break;
-      }
-    }
-    let injectionHTML = "";
-    allInjections.forEach((script) => {
-      let scriptId = _crypto.default.randomBytes(22).toString('hex');
-      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${script.source}</script>\`;
-    });
-    if (response.isBase64) {
-      response.isBase64 = false;
-      response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
-    } else {
-      response.body = injectionHTML + response.body;
-    }
-  }`;
-  methodBody.insertStatements(0, customHTMLInjectCode);
+  body.addStatements("this._networkId = networkId;");
+  body.addStatements("this._sessionManager = sessionManager;");
+  body.addStatements("eventsHelper.addEventListener(this._session, 'Fetch.requestPaused', async e => await this._networkRequestIntercepted(e));");
 }
+// Inject HTML code
+const fulfillMethod = routeImplClass.getMethodOrThrow("fulfill");
+// Insert the custom code at the beginning of the `fulfill` method
+const customHTMLInjectCode = `const isTextHtml = response.resourceType === 'Document' || response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
+var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
+    for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
+      if (!allInjections.includes(binding)) allInjections.push(binding);
+    }
+if (isTextHtml && allInjections.length) {
+  // I Chatted so hard for this Code
+  let scriptNonce = crypto.randomBytes(22).toString('hex');
+  for (let i = 0; i < response.headers.length; i++) {
+    if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
+      // Search for an existing script-src nonce that we can hijack
+      let cspValue = response.headers[i].value;
+      const nonceRegex = /script-src[^;]*'nonce-([\\w-]+)'/;
+      const nonceMatch = cspValue.match(nonceRegex);
+      if (nonceMatch) {
+        scriptNonce = nonceMatch[1];
+      } else {
+        // Add the new nonce value to the script-src directive
+        const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
+        const newCspValue = cspValue.replace(scriptSrcRegex, \`$1 'nonce-\${scriptNonce}'$2\`);
+        response.headers[i].value = newCspValue;
+      }
+      break;
+    }
+  }
+  let injectionHTML = "";
+  allInjections.forEach((script) => {
+    let scriptId = crypto.randomBytes(22).toString('hex');
+    injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${script.source}</script>\`;
+  });
+  if (response.isBase64) {
+    response.isBase64 = false;
+    response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
+  } else {
+    response.body = injectionHTML + response.body;
+  }
+}
+this._fulfilled = true;
+const body = response.isBase64 ? response.body : Buffer.from(response.body).toString('base64');
+const responseHeaders = splitSetCookieHeader(response.headers);
+await catchDisallowedErrors(async () => {
+  await this._session.send('Fetch.fulfillRequest', {
+    requestId: response.interceptionId ? response.interceptionId : this._interceptionId,
+    responseCode: response.status,
+    responsePhrase: network.statusText(response.status),
+    responseHeaders,
+    body,
+  });
+});`;
+fulfillMethod.setBodyText(customHTMLInjectCode);
+
+// -- continue --
+const continueMethod = routeImplClass.getMethodOrThrow("continue");
+continueMethod.setBodyText(`this._alreadyContinuedParams = {
+  requestId: this._interceptionId,
+  url: overrides.url,
+  headers: overrides.headers,
+  method: overrides.method,
+  postData: overrides.postData ? overrides.postData.toString('base64') : undefined,
+};
+if (overrides.url && (overrides.url === 'http://patchright-init-script-inject.internal/' || overrides.url === 'https://patchright-init-script-inject.internal/')) {
+  await catchDisallowedErrors(async () => {
+    this._sessionManager._alreadyTrackedNetworkIds.add(this._networkId);
+    this._session.send('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
+  }) ;
+} else {
+  await catchDisallowedErrors(async () => {
+    await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
+  });
+}`);
+
+// -- _networkRequestIntercepted Method --
+routeImplClass.addMethod({
+  name: "_networkRequestIntercepted",
+  isAsync: true,
+  parameters: [
+    {
+      name: "event",
+    },
+  ]
+});
+const networkRequestInterceptedMethod = routeImplClass.getMethod(
+  "_networkRequestIntercepted",
+);
+networkRequestInterceptedMethod.setBodyText(`if (event.resourceType !== 'Document') {
+  await catchDisallowedErrors(async () => {
+    await this._session.send('Fetch.continueRequest', { requestId: event.requestId });
+  });
+  return;
+}
+if (this._networkId != event.networkId || !this._sessionManager._alreadyTrackedNetworkIds.has(event.networkId)) return;
+try {
+  if (event.responseStatusCode >= 301 && event.responseStatusCode <= 308  || (event.redirectedRequestId && !event.responseStatusCode)) {
+    await this._session.send('Fetch.continueRequest', { requestId: event.requestId, interceptResponse: true });
+  } else {
+    const responseBody = await this._session.send('Fetch.getResponseBody', { requestId: event.requestId });
+    await this.fulfill({
+      headers: event.responseHeaders,
+      isBase64: true,
+      body: responseBody.body,
+      status: event.responseStatusCode,
+      interceptionId: event.requestId,
+      resourceType: event.resourceType,
+    })
+  }
+} catch (error) {
+  await this._session._sendMayFail('Fetch.continueRequest', { requestId: event.requestId });
+}`);
 
 // ----------------------------
 // server/chromium/crServiceWorker.ts
@@ -1326,7 +1426,8 @@ for (const methodName of ["_onLifecycleEvent", "_onFrameNavigated"]) {
   const frameSessionMethod = frameSessionClass.getMethod(methodName);
   const frameSessionMethodBody = frameSessionMethod.getBody();
   frameSessionMethod.setIsAsync(true);
-  frameSessionMethodBody.addStatements(`var document = await this._client._sendMayFail("DOM.getDocument");
+  frameSessionMethodBody.addStatements(`await this._client._sendMayFail('Runtime.runIfWaitingForDebugger');
+  var document = await this._client._sendMayFail("DOM.getDocument");
   if (!document) return
   var query = await this._client._sendMayFail("DOM.querySelectorAll", {
     nodeId: document.root.nodeId,
@@ -1613,6 +1714,7 @@ for (const statement of statements) {
     }
   }
 }
+
 // ------- Worker Class -------
 const workerClass = pageSourceFile.getClass("Worker");
 // -- evaluateExpression Method --
