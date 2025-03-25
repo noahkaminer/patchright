@@ -1,34 +1,7 @@
 # NOTE: This patch file is generated automatically and is not used, it is only for documentation. The driver is actually patched using [patchright_driver_patch](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/blob/main/patchright_driver_patch.js), see [the workflow](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/blob/main/.github/workflows/patchright_workflow.yml)
-diff -ruN playwright/node_modules/playwright-core/src/protocol/validator.ts patchright/node_modules/playwright-core/src/protocol/validator.ts
---- playwright/node_modules/playwright-core/src/protocol/validator.ts	2025-03-20 09:23:03.334461601 +0000
-+++ patchright/node_modules/playwright-core/src/protocol/validator.ts	2025-03-20 09:23:10.583486678 +0000
-@@ -1551,6 +1551,7 @@
-   expression: tString,
-   isFunction: tOptional(tBoolean),
-   arg: tType('SerializedArgument'),
-+  isolatedContext: tBoolean
- });
- scheme.FrameEvaluateExpressionResult = tObject({
-   value: tType('SerializedValue'),
-@@ -1836,6 +1837,7 @@
-   expression: tString,
-   isFunction: tOptional(tBoolean),
-   arg: tType('SerializedArgument'),
-+  isolatedContext: tBoolean
- });
- scheme.WorkerEvaluateExpressionResult = tObject({
-   value: tType('SerializedValue'),
-@@ -1863,6 +1865,7 @@
-   expression: tString,
-   isFunction: tOptional(tBoolean),
-   arg: tType('SerializedArgument'),
-+  isolatedContext: tBoolean
- });
- scheme.ElementHandleEvaluateExpressionParams = tType('JSHandleEvaluateExpressionParams');
- scheme.JSHandleEvaluateExpressionResult = tObject({
 diff -ruN playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts
---- playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-03-20 09:23:10.584486680 +0000
+--- playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-03-25 20:35:52.953683542 +0000
 @@ -376,7 +376,7 @@
        this._initScriptIds.push(script);
    }
@@ -39,9 +12,9 @@ diff -ruN playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts pa
      this._initScriptIds = [];
      await Promise.all(promises);
 diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts patchright/node_modules/playwright-core/src/server/browserContext.ts
---- playwright/node_modules/playwright-core/src/server/browserContext.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/node_modules/playwright-core/src/server/browserContext.ts	2025-03-20 09:23:10.583486678 +0000
-@@ -149,7 +149,7 @@
+--- playwright/node_modules/playwright-core/src/server/browserContext.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/node_modules/playwright-core/src/server/browserContext.ts	2025-03-25 20:35:52.941683555 +0000
+@@ -150,7 +150,7 @@
      if (debugMode() === 'console')
        await this.extendInjectedScript(consoleApiSource.source);
      if (this._options.serviceWorkers === 'block')
@@ -50,7 +23,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts p
  
      if (this._options.permissions)
        await this.grantPermissions(this._options.permissions);
-@@ -332,16 +332,15 @@
+@@ -333,16 +333,15 @@
      }
      const binding = new PageBinding(name, playwrightBinding, needsHandle);
      this._pageBindings.set(name, binding);
@@ -71,7 +44,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts p
    }
  
    async grantPermissions(permissions: string[], origin?: string) {
-@@ -430,8 +429,8 @@
+@@ -431,8 +430,8 @@
    }
  
    async _removeInitScripts(): Promise<void> {
@@ -83,8 +56,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts p
  
    async setRequestInterceptor(handler: network.RouteHandler | undefined): Promise<void> {
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts
---- playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-20 09:23:10.584486680 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-25 20:35:52.953683542 +0000
 @@ -58,27 +58,16 @@
    '--disable-field-trial-config', // https://source.chromium.org/chromium/chromium/src/+/main:testing/variations/README.md
    '--disable-background-networking',
@@ -124,8 +97,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/chromiumSw
 +  '--disable-blink-features=AutomationControlled'
  ];
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-03-25 20:35:52.953683542 +0000
 @@ -474,11 +474,6 @@
        await (page._delegate as CRPage).addInitScript(initScript);
    }
@@ -156,8 +129,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crBrowser.
 +  }
  }
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -67,7 +67,6 @@
        }).catch(e => null);
      });
@@ -167,8 +140,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crDevTools
        session.send('Page.enable'),
        session.send('Page.addScriptToEvaluateOnNewDocument', { source: `
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -184,75 +157,183 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
      let fetchPromise = Promise.resolve<any>(undefined);
      if (!info.workerFrame) {
        if (enabled)
-@@ -342,7 +344,7 @@
+@@ -238,6 +240,7 @@
+   }
+ 
+   _onRequestPaused(sessionInfo: SessionInfo, event: Protocol.Fetch.requestPausedPayload) {
++    if (this._alreadyTrackedNetworkIds.has(event.networkId)) return;
+     if (!event.networkId) {
+       // Fetch without networkId means that request was not recognized by inspector, and
+       // it will never receive Network.requestWillBeSent. Continue the request to not affect it.
+@@ -276,6 +279,7 @@
+   }
+ 
+   _onRequest(requestWillBeSentSessionInfo: SessionInfo, requestWillBeSentEvent: Protocol.Network.requestWillBeSentPayload, requestPausedSessionInfo: SessionInfo | undefined, requestPausedEvent: Protocol.Fetch.requestPausedPayload | undefined) {
++    if (this._alreadyTrackedNetworkIds.has(requestWillBeSentEvent.initiator.requestId)) return;
+     if (requestWillBeSentEvent.request.url.startsWith('data:'))
+       return;
+     let redirectedFrom: InterceptableRequest | null = null;
+@@ -342,7 +346,7 @@
          headersOverride = redirectedFrom?._originalRequestRoute?._alreadyContinuedParams?.headers;
          requestPausedSessionInfo!.session._sendMayFail('Fetch.continueRequest', { requestId: requestPausedEvent.requestId, headers: headersOverride });
        } else {
 -        route = new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId);
-+        route = new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId, this._page);
++        route = new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId, this._page, requestPausedEvent.networkId, this);
        }
      }
      const isNavigationRequest = requestWillBeSentEvent.requestId === requestWillBeSentEvent.loaderId && requestWillBeSentEvent.type === 'Document';
-@@ -606,9 +608,11 @@
+@@ -449,13 +453,7 @@
+   }
+ 
+   _handleRequestRedirect(request: InterceptableRequest, responsePayload: Protocol.Network.Response, timestamp: number, hasExtraInfo: boolean) {
+-    const response = this._createResponse(request, responsePayload, hasExtraInfo);
+-    response.setTransferSize(null);
+-    response.setEncodedBodySize(null);
+-    response._requestFinished((timestamp - request._timestamp) * 1000);
+-    this._deleteRequest(request);
+-    (this._page?._frameManager || this._serviceWorker)!.requestReceivedResponse(response);
+-    (this._page?._frameManager || this._serviceWorker)!.reportRequestFinished(request.request, response);
++    return;
+   }
+ 
+   _onResponseReceivedExtraInfo(event: Protocol.Network.responseReceivedExtraInfoPayload) {
+@@ -547,6 +545,8 @@
+     if (request.session !== sessionInfo.session && !sessionInfo.isMain && request._documentId === request._requestId)
+       request.session = sessionInfo.session;
+   }
++
++  _alreadyTrackedNetworkIds: Set<string> = new Set();
+ }
+ 
+ class InterceptableRequest {
+@@ -606,32 +606,82 @@
    _alreadyContinuedParams: Protocol.Fetch.continueRequestParameters | undefined;
    _fulfilled: boolean = false;
  
 -  constructor(session: CRSession, interceptionId: string) {
-+  constructor(session: CRSession, interceptionId: string, page: Page) {
++  constructor(session: CRSession, interceptionId: string, page: Page, networkId, sessionManager) {
++    this._sessionManager = void 0;
++    this._networkId = void 0;
 +    this._page = void 0;
      this._session = session;
      this._interceptionId = interceptionId;
 +    this._page = page;
++    this._networkId = networkId;
++    this._sessionManager = sessionManager;
++    eventsHelper.addEventListener(this._session, 'Fetch.requestPaused', async e => await this._networkRequestIntercepted(e));
    }
  
    async continue(overrides: types.NormalizedContinueOverrides): Promise<void> {
-@@ -625,6 +629,43 @@
+     this._alreadyContinuedParams = {
+-      requestId: this._interceptionId!,
++      requestId: this._interceptionId,
+       url: overrides.url,
+       headers: overrides.headers,
+       method: overrides.method,
+-      postData: overrides.postData ? overrides.postData.toString('base64') : undefined
++      postData: overrides.postData ? overrides.postData.toString('base64') : undefined,
+     };
+-    await catchDisallowedErrors(async () => {
+-      await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
+-    });
++    if (overrides.url && (overrides.url === 'http://patchright-init-script-inject.internal/' || overrides.url === 'https://patchright-init-script-inject.internal/')) {
++      await catchDisallowedErrors(async () => {
++        this._sessionManager._alreadyTrackedNetworkIds.add(this._networkId);
++        this._session.send('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
++      }) ;
++    } else {
++      await catchDisallowedErrors(async () => {
++        await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
++      });
++    }
    }
  
    async fulfill(response: types.NormalizedFulfillResponse) {
-+    const isTextHtml = response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
-+      var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
-+          for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
-+            if (!allInjections.includes(binding)) allInjections.push(binding);
-+          }
-+      if (isTextHtml && allInjections.length) {
-+        // I Chatted so hard for this Code
-+        let scriptNonce = crypto.randomBytes(22).toString('hex');
-+        for (let i = 0; i < response.headers.length; i++) {
-+          if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
-+            // Search for an existing script-src nonce that we can hijack
-+            let cspValue = response.headers[i].value;
-+            const nonceRegex = /script-src[^;]*'nonce-([\w-]+)'/;
-+            const nonceMatch = cspValue.match(nonceRegex);
-+            if (nonceMatch) {
-+              scriptNonce = nonceMatch[1];
-+            } else {
-+              // Add the new nonce value to the script-src directive
-+              const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
-+              const newCspValue = cspValue.replace(scriptSrcRegex, `$1 'nonce-${scriptNonce}'$2`);
-+              response.headers[i].value = newCspValue;
-+            }
-+            break;
-+          }
++    const isTextHtml = response.resourceType === 'Document' || response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
++    var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
++        for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
++          if (!allInjections.includes(binding)) allInjections.push(binding);
 +        }
-+        let injectionHTML = "";
-+        allInjections.forEach((script) => {
-+          let scriptId = _crypto.default.randomBytes(22).toString('hex');
-+          injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${script.source}</script>`;
-+        });
-+        if (response.isBase64) {
-+          response.isBase64 = false;
-+          response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
-+        } else {
-+          response.body = injectionHTML + response.body;
++    if (isTextHtml && allInjections.length) {
++      // I Chatted so hard for this Code
++      let scriptNonce = crypto.randomBytes(22).toString('hex');
++      for (let i = 0; i < response.headers.length; i++) {
++        if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
++          // Search for an existing script-src nonce that we can hijack
++          let cspValue = response.headers[i].value;
++          const nonceRegex = /script-src[^;]*'nonce-([\w-]+)'/;
++          const nonceMatch = cspValue.match(nonceRegex);
++          if (nonceMatch) {
++            scriptNonce = nonceMatch[1];
++          } else {
++            // Add the new nonce value to the script-src directive
++            const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
++            const newCspValue = cspValue.replace(scriptSrcRegex, `$1 'nonce-${scriptNonce}'$2`);
++            response.headers[i].value = newCspValue;
++          }
++          break;
 +        }
 +      }
++      let injectionHTML = "";
++      allInjections.forEach((script) => {
++        let scriptId = crypto.randomBytes(22).toString('hex');
++        injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${script.source}</script>`;
++      });
++      if (response.isBase64) {
++        response.isBase64 = false;
++        response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
++      } else {
++        response.body = injectionHTML + response.body;
++      }
++    }
      this._fulfilled = true;
      const body = response.isBase64 ? response.body : Buffer.from(response.body).toString('base64');
+-
+     const responseHeaders = splitSetCookieHeader(response.headers);
+     await catchDisallowedErrors(async () => {
+       await this._session.send('Fetch.fulfillRequest', {
+-        requestId: this._interceptionId!,
++        requestId: response.interceptionId ? response.interceptionId : this._interceptionId,
+         responseCode: response.status,
+         responsePhrase: network.statusText(response.status),
+         responseHeaders,
+@@ -650,6 +700,33 @@
+       });
+     });
+   }
++
++  async _networkRequestIntercepted(event) {
++    if (event.resourceType !== 'Document') {
++      await catchDisallowedErrors(async () => {
++        await this._session.send('Fetch.continueRequest', { requestId: event.requestId });
++      });
++      return;
++    }
++    if (this._networkId != event.networkId || !this._sessionManager._alreadyTrackedNetworkIds.has(event.networkId)) return;
++    try {
++      if (event.responseStatusCode >= 301 && event.responseStatusCode <= 308  || (event.redirectedRequestId && !event.responseStatusCode)) {
++        await this._session.send('Fetch.continueRequest', { requestId: event.requestId, interceptResponse: true });
++      } else {
++        const responseBody = await this._session.send('Fetch.getResponseBody', { requestId: event.requestId });
++        await this.fulfill({
++          headers: event.responseHeaders,
++          isBase64: true,
++          body: responseBody.body,
++          status: event.responseStatusCode,
++          interceptionId: event.requestId,
++          resourceType: event.resourceType,
++        })
++      }
++    } catch (error) {
++      await this._session._sendMayFail('Fetch.continueRequest', { requestId: event.requestId });
++    }
++  }
+ }
  
+ // In certain cases, protocol will return error if the request was already canceled
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts patchright/node_modules/playwright-core/src/server/chromium/crPage.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -361,7 +442,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
    }
  
    dispose() {
-@@ -565,18 +573,30 @@
+@@ -565,18 +573,31 @@
  
    async _navigate(frame: frames.Frame, url: string, referrer: string | undefined): Promise<frames.GotoResult> {
      const response = await this._client.send('Page.navigate', { url, referrer, frameId: frame._id, referrerPolicy: 'unsafeUrl' });
@@ -379,7 +460,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
        this._page._frameManager.frameLifecycleEvent(event.frameId, 'load');
      else if (event.name === 'DOMContentLoaded')
        this._page._frameManager.frameLifecycleEvent(event.frameId, 'domcontentloaded');
-+    var document = await this._client._sendMayFail("DOM.getDocument");
++    await this._client._sendMayFail('Runtime.runIfWaitingForDebugger');
++      var document = await this._client._sendMayFail("DOM.getDocument");
 +      if (!document) return
 +      var query = await this._client._sendMayFail("DOM.querySelectorAll", {
 +        nodeId: document.root.nodeId,
@@ -393,7 +475,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
    }
  
    _handleFrameTree(frameTree: Protocol.Page.FrameTree) {
-@@ -623,12 +643,23 @@
+@@ -623,12 +644,24 @@
      this._page._frameManager.frameAttached(frameId, parentFrameId);
    }
  
@@ -404,7 +486,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
      this._page._frameManager.frameCommittedNewDocumentNavigation(framePayload.id, framePayload.url + (framePayload.urlFragment || ''), framePayload.name || '', framePayload.loaderId, initial);
      if (!initial)
        this._firstNonInitialNavigationCommittedFulfill();
-+    var document = await this._client._sendMayFail("DOM.getDocument");
++    await this._client._sendMayFail('Runtime.runIfWaitingForDebugger');
++      var document = await this._client._sendMayFail("DOM.getDocument");
 +      if (!document) return
 +      var query = await this._client._sendMayFail("DOM.querySelectorAll", {
 +        nodeId: document.root.nodeId,
@@ -418,7 +501,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
    }
  
    _onFrameRequestedNavigation(payload: Protocol.Page.frameRequestedNavigationPayload) {
-@@ -665,19 +696,24 @@
+@@ -665,19 +698,24 @@
    }
  
    _onExecutionContextCreated(contextPayload: Protocol.Runtime.ExecutionContextDescription) {
@@ -448,7 +531,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
    }
  
    _onExecutionContextDestroyed(executionContextId: number) {
-@@ -693,7 +729,7 @@
+@@ -693,7 +731,7 @@
        this._onExecutionContextDestroyed(contextId);
    }
  
@@ -457,7 +540,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
      const session = this._client.createChildSession(event.sessionId);
  
      if (event.targetInfo.type === 'iframe') {
-@@ -725,8 +761,17 @@
+@@ -725,8 +763,17 @@
      session.once('Runtime.executionContextCreated', async event => {
        worker._createExecutionContext(new CRExecutionContext(session, event.context));
      });
@@ -476,7 +559,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
      // TODO: attribute workers to the right frame.
      this._crPage._networkManager.addSession(session, this._page._frameManager.frame(this._targetId) ?? undefined).catch(() => {});
      session._sendMayFail('Runtime.runIfWaitingForDebugger');
-@@ -805,8 +850,8 @@
+@@ -805,8 +852,8 @@
      const pageOrError = await this._crPage._page.waitForInitializedOrError();
      if (!(pageOrError instanceof Error)) {
        const context = this._contextIdToContext.get(event.executionContextId);
@@ -487,7 +570,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
      }
    }
  
-@@ -1052,16 +1097,11 @@
+@@ -1052,16 +1099,11 @@
    }
  
    async _evaluateOnNewDocument(initScript: InitScript, world: types.World): Promise<void> {
@@ -506,7 +589,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
    }
  
    async _getContentFrame(handle: dom.ElementHandle): Promise<frames.Frame | null> {
-@@ -1168,6 +1208,47 @@
+@@ -1168,6 +1210,47 @@
        throw new Error(dom.kUnableToAdoptErrorMessage);
      return createHandle(to, result.object).asElement()!;
    }
@@ -555,8 +638,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
  
  async function emulateLocale(session: CRSession, locale: string) {
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -44,8 +44,6 @@
        this.updateOffline();
        this._networkManager.addSession(session, undefined, true /* isMain */).catch(() => {});
@@ -567,8 +650,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crServiceW
      session.on('Inspector.targetReloadedAfterCrash', () => {
        // Resume service worker after restart.
 diff -ruN playwright/node_modules/playwright-core/src/server/clock.ts patchright/node_modules/playwright-core/src/server/clock.ts
---- playwright/node_modules/playwright-core/src/server/clock.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/node_modules/playwright-core/src/server/clock.ts	2025-03-20 09:23:10.583486678 +0000
+--- playwright/node_modules/playwright-core/src/server/clock.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/node_modules/playwright-core/src/server/clock.ts	2025-03-25 20:35:52.941683555 +0000
 @@ -92,6 +92,14 @@
    }
  
@@ -585,8 +668,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/clock.ts patchright
    }
  }
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-20 09:23:03.340461624 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-25 20:35:46.276690307 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -84,11 +84,15 @@
    }
  
@@ -606,8 +689,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/frameDi
  
    async waitForSelector(params: channels.FrameWaitForSelectorParams, metadata: CallMetadata): Promise<channels.FrameWaitForSelectorResult> {
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-20 09:23:03.340461624 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-25 20:35:46.276690307 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -39,11 +39,11 @@
    }
  
@@ -623,8 +706,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/jsHandl
    }
  
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-20 09:23:03.340461624 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-25 20:35:46.276690307 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -353,11 +353,11 @@
    }
  
@@ -640,8 +723,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/pageDis
  }
  
 diff -ruN playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts
---- playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-03-20 09:23:03.341461627 +0000
-+++ patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-03-25 20:35:46.277690306 +0000
++++ patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -390,7 +390,7 @@
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
@@ -652,8 +735,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts p
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
 diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchright/node_modules/playwright-core/src/server/frames.ts
---- playwright/node_modules/playwright-core/src/server/frames.ts	2025-03-20 09:23:03.341461627 +0000
-+++ patchright/node_modules/playwright-core/src/server/frames.ts	2025-03-20 09:23:10.583486678 +0000
+--- playwright/node_modules/playwright-core/src/server/frames.ts	2025-03-25 20:35:46.277690306 +0000
++++ patchright/node_modules/playwright-core/src/server/frames.ts	2025-03-25 20:35:52.941683555 +0000
 @@ -1,3 +1,7 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import { CRExecutionContext } from './chromium/crExecutionContext';
@@ -1350,9 +1433,9 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
  
  class SignalBarrier {
 diff -ruN playwright/node_modules/playwright-core/src/server/javascript.ts patchright/node_modules/playwright-core/src/server/javascript.ts
---- playwright/node_modules/playwright-core/src/server/javascript.ts	2025-03-20 09:23:03.343461635 +0000
-+++ patchright/node_modules/playwright-core/src/server/javascript.ts	2025-03-20 09:23:10.584486680 +0000
-@@ -149,17 +149,33 @@
+--- playwright/node_modules/playwright-core/src/server/javascript.ts	2025-03-25 20:35:46.279690304 +0000
++++ patchright/node_modules/playwright-core/src/server/javascript.ts	2025-03-25 20:35:52.952683544 +0000
+@@ -154,17 +154,33 @@
      return evaluate(this._context, false /* returnByValue */, pageFunction, this, arg);
    }
  
@@ -1397,9 +1480,9 @@ diff -ruN playwright/node_modules/playwright-core/src/server/javascript.ts patch
    async getProperty(propertyName: string): Promise<JSHandle> {
      const objectHandle = await this.evaluateHandle((object: any, propertyName) => {
 diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/node_modules/playwright-core/src/server/page.ts
---- playwright/node_modules/playwright-core/src/server/page.ts	2025-03-20 09:23:03.343461635 +0000
-+++ patchright/node_modules/playwright-core/src/server/page.ts	2025-03-20 09:23:10.584486680 +0000
-@@ -60,7 +60,7 @@
+--- playwright/node_modules/playwright-core/src/server/page.ts	2025-03-25 20:35:46.279690304 +0000
++++ patchright/node_modules/playwright-core/src/server/page.ts	2025-03-25 20:35:52.952683544 +0000
+@@ -61,7 +61,7 @@
    goForward(): Promise<boolean>;
    requestGC(): Promise<void>;
    addInitScript(initScript: InitScript): Promise<void>;
@@ -1408,7 +1491,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
    closePage(runBeforeUnload: boolean): Promise<void>;
  
    navigateFrame(frame: frames.Frame, url: string, referrer: string | undefined): Promise<frames.GotoResult>;
-@@ -351,15 +351,15 @@
+@@ -352,15 +352,15 @@
        throw new Error(`Function "${name}" has been already registered in the browser context`);
      const binding = new PageBinding(name, playwrightBinding, needsHandle);
      this._pageBindings.set(name, binding);
@@ -1428,7 +1511,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
    }
  
    setExtraHTTPHeaders(headers: types.HeadersArray) {
-@@ -576,8 +576,8 @@
+@@ -577,8 +577,8 @@
    }
  
    async _removeInitScripts() {
@@ -1439,19 +1522,19 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
    }
  
    needsRequestInterception(): boolean {
-@@ -769,11 +769,6 @@
+@@ -770,11 +770,6 @@
        this._browserContext.addVisitedOrigin(origin);
    }
  
 -  allInitScripts() {
 -    const bindings = [...this._browserContext._pageBindings.values(), ...this._pageBindings.values()];
--    return [...bindings.map(binding => binding.initScript), ...this._browserContext.initScripts, ...this.initScripts];
+-    return [kBuiltinsScript, ...bindings.map(binding => binding.initScript), ...this._browserContext.initScripts, ...this.initScripts];
 -  }
 -
    getBinding(name: string) {
      return this._pageBindings.get(name) || this._browserContext._pageBindings.get(name);
    }
-@@ -810,6 +805,10 @@
+@@ -811,6 +806,10 @@
    markAsServerSideOnly() {
      this._isServerSideOnly = true;
    }
@@ -1462,7 +1545,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
  }
  
  export class Worker extends SdkObject {
-@@ -847,13 +846,29 @@
+@@ -848,30 +847,42 @@
      this.openScope.close(new Error('Worker closed'));
    }
  
@@ -1497,10 +1580,6 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
 +    }
  }
  
- type BindingPayload = {
-@@ -863,20 +878,16 @@
- };
- 
  export class PageBinding {
 -  static kPlaywrightBinding = '__playwright__binding__';
 -
@@ -1513,38 +1592,23 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
    constructor(name: string, playwrightFunction: frames.FunctionWithSource, needsHandle: boolean) {
      this.name = name;
      this.playwrightFunction = playwrightFunction;
--    this.initScript = new InitScript(`(${addPageBinding.toString()})(${JSON.stringify(PageBinding.kPlaywrightBinding)}, ${JSON.stringify(name)}, ${needsHandle}, (${source})())`, true /* internal */);
+-    this.initScript = new InitScript(createPageBindingScript(PageBinding.kPlaywrightBinding, name, needsHandle), true /* internal */);
 +    this.source = `(${addPageBinding.toString()})(${JSON.stringify(name)}, ${needsHandle}, (${source})())`;
      this.needsHandle = needsHandle;
 -    this.internal = name.startsWith('__pw');
    }
  
    static async dispatch(page: Page, payload: string, context: dom.FrameExecutionContext) {
-@@ -916,10 +927,13 @@
-       callbacks.delete(arg.seq);
+@@ -896,6 +907,8 @@
+       context.evaluate(deliverBindingResult, { name, seq, error }).catch(e => debugLogger.log('error', e));
      }
    }
 +
 +  readonly source: string;
  }
  
--function addPageBinding(playwrightBinding: string, bindingName: string, needsHandle: boolean, utilityScriptSerializers: ReturnType<typeof source>) {
--  const binding = (globalThis as any)[playwrightBinding];
-+function addPageBinding(bindingName: string, needsHandle: boolean, utilityScriptSerializers: ReturnType<typeof source>) {
-+  const binding = (globalThis as any)[bindingName];
-+  if (binding && binding.toString().startsWith("(...args) => {")) return
-   (globalThis as any)[bindingName] = (...args: any[]) => {
-     const me = (globalThis as any)[bindingName];
-     if (needsHandle && args.slice(1).some(arg => arg !== undefined))
-@@ -953,7 +967,6 @@
-     binding(JSON.stringify(payload));
-     return promise;
-   };
--  (globalThis as any)[bindingName].__installed = true;
- }
- 
  export class InitScript {
-@@ -963,14 +976,7 @@
+@@ -905,14 +918,7 @@
  
    constructor(source: string, internal?: boolean, name?: string) {
      const guid = createGuid();
@@ -1560,9 +1624,34 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
      this.internal = !!internal;
      this.name = name;
    }
+diff -ruN playwright/node_modules/playwright-core/src/server/pageBinding.ts patchright/node_modules/playwright-core/src/server/pageBinding.ts
+--- playwright/node_modules/playwright-core/src/server/pageBinding.ts	2025-03-25 20:35:46.279690304 +0000
++++ patchright/node_modules/playwright-core/src/server/pageBinding.ts	2025-03-25 20:35:52.952683544 +0000
+@@ -26,10 +26,11 @@
+   serializedArgs?: SerializedValue[],
+ };
+ 
+-function addPageBinding(playwrightBinding: string, bindingName: string, needsHandle: boolean, utilityScriptSerializersFactory: typeof source, builtins: Builtins) {
++function addPageBinding(bindingName: string, needsHandle: boolean, utilityScriptSerializersFactory: typeof source, builtins: Builtins) {
+   const { serializeAsCallArgument } = utilityScriptSerializersFactory(builtins);
+   // eslint-disable-next-line no-restricted-globals
+-  const binding = (globalThis as any)[playwrightBinding];
++  const binding = (globalThis as any)[bindingName];
++  if (binding && binding.toString().startsWith("(...args) => {")) return
+   // eslint-disable-next-line no-restricted-globals
+   (globalThis as any)[bindingName] = (...args: any[]) => {
+   // eslint-disable-next-line no-restricted-globals
+@@ -66,7 +67,6 @@
+     return promise;
+   };
+   // eslint-disable-next-line no-restricted-globals
+-  (globalThis as any)[bindingName].__installed = true;
+ }
+ 
+ export function takeBindingHandle(arg: { name: string, seq: number }) {
 diff -ruN playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts
---- playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-03-20 09:23:03.346461646 +0000
-+++ patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-03-20 09:23:10.587486687 +0000
+--- playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-03-25 20:35:46.282690301 +0000
++++ patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -768,7 +768,7 @@
      await this._updateBootstrapScript();
    }
@@ -1572,36 +1661,9 @@ diff -ruN playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts pa
      await this._updateBootstrapScript();
    }
  
-diff -ruN playwright/packages/playwright-core/src/protocol/validator.ts patchright/packages/playwright-core/src/protocol/validator.ts
---- playwright/packages/playwright-core/src/protocol/validator.ts	2025-03-20 09:23:03.334461601 +0000
-+++ patchright/packages/playwright-core/src/protocol/validator.ts	2025-03-20 09:23:10.583486678 +0000
-@@ -1551,6 +1551,7 @@
-   expression: tString,
-   isFunction: tOptional(tBoolean),
-   arg: tType('SerializedArgument'),
-+  isolatedContext: tBoolean
- });
- scheme.FrameEvaluateExpressionResult = tObject({
-   value: tType('SerializedValue'),
-@@ -1836,6 +1837,7 @@
-   expression: tString,
-   isFunction: tOptional(tBoolean),
-   arg: tType('SerializedArgument'),
-+  isolatedContext: tBoolean
- });
- scheme.WorkerEvaluateExpressionResult = tObject({
-   value: tType('SerializedValue'),
-@@ -1863,6 +1865,7 @@
-   expression: tString,
-   isFunction: tOptional(tBoolean),
-   arg: tType('SerializedArgument'),
-+  isolatedContext: tBoolean
- });
- scheme.ElementHandleEvaluateExpressionParams = tType('JSHandleEvaluateExpressionParams');
- scheme.JSHandleEvaluateExpressionResult = tObject({
 diff -ruN playwright/packages/playwright-core/src/server/bidi/bidiPage.ts patchright/packages/playwright-core/src/server/bidi/bidiPage.ts
---- playwright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-03-20 09:23:10.584486680 +0000
+--- playwright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-03-25 20:35:52.953683542 +0000
 @@ -376,7 +376,7 @@
        this._initScriptIds.push(script);
    }
@@ -1612,9 +1674,9 @@ diff -ruN playwright/packages/playwright-core/src/server/bidi/bidiPage.ts patchr
      this._initScriptIds = [];
      await Promise.all(promises);
 diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patchright/packages/playwright-core/src/server/browserContext.ts
---- playwright/packages/playwright-core/src/server/browserContext.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/packages/playwright-core/src/server/browserContext.ts	2025-03-20 09:23:10.583486678 +0000
-@@ -149,7 +149,7 @@
+--- playwright/packages/playwright-core/src/server/browserContext.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/packages/playwright-core/src/server/browserContext.ts	2025-03-25 20:35:52.941683555 +0000
+@@ -150,7 +150,7 @@
      if (debugMode() === 'console')
        await this.extendInjectedScript(consoleApiSource.source);
      if (this._options.serviceWorkers === 'block')
@@ -1623,7 +1685,7 @@ diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patch
  
      if (this._options.permissions)
        await this.grantPermissions(this._options.permissions);
-@@ -332,16 +332,15 @@
+@@ -333,16 +333,15 @@
      }
      const binding = new PageBinding(name, playwrightBinding, needsHandle);
      this._pageBindings.set(name, binding);
@@ -1644,7 +1706,7 @@ diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patch
    }
  
    async grantPermissions(permissions: string[], origin?: string) {
-@@ -430,8 +429,8 @@
+@@ -431,8 +430,8 @@
    }
  
    async _removeInitScripts(): Promise<void> {
@@ -1656,8 +1718,8 @@ diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patch
  
    async setRequestInterceptor(handler: network.RouteHandler | undefined): Promise<void> {
 diff -ruN playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts
---- playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-20 09:23:10.584486680 +0000
+--- playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-25 20:35:52.953683542 +0000
 @@ -58,27 +58,16 @@
    '--disable-field-trial-config', // https://source.chromium.org/chromium/chromium/src/+/main:testing/variations/README.md
    '--disable-background-networking',
@@ -1697,8 +1759,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/chromiumSwitch
 +  '--disable-blink-features=AutomationControlled'
  ];
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crBrowser.ts patchright/packages/playwright-core/src/server/chromium/crBrowser.ts
---- playwright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-03-20 09:23:03.337461612 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-03-25 20:35:46.273690310 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-03-25 20:35:52.953683542 +0000
 @@ -474,11 +474,6 @@
        await (page._delegate as CRPage).addInitScript(initScript);
    }
@@ -1729,8 +1791,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crBrowser.ts p
 +  }
  }
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crDevTools.ts patchright/packages/playwright-core/src/server/chromium/crDevTools.ts
---- playwright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -67,7 +67,6 @@
        }).catch(e => null);
      });
@@ -1740,8 +1802,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crDevTools.ts 
        session.send('Page.enable'),
        session.send('Page.addScriptToEvaluateOnNewDocument', { source: `
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts
---- playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -1757,75 +1819,183 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
      let fetchPromise = Promise.resolve<any>(undefined);
      if (!info.workerFrame) {
        if (enabled)
-@@ -342,7 +344,7 @@
+@@ -238,6 +240,7 @@
+   }
+ 
+   _onRequestPaused(sessionInfo: SessionInfo, event: Protocol.Fetch.requestPausedPayload) {
++    if (this._alreadyTrackedNetworkIds.has(event.networkId)) return;
+     if (!event.networkId) {
+       // Fetch without networkId means that request was not recognized by inspector, and
+       // it will never receive Network.requestWillBeSent. Continue the request to not affect it.
+@@ -276,6 +279,7 @@
+   }
+ 
+   _onRequest(requestWillBeSentSessionInfo: SessionInfo, requestWillBeSentEvent: Protocol.Network.requestWillBeSentPayload, requestPausedSessionInfo: SessionInfo | undefined, requestPausedEvent: Protocol.Fetch.requestPausedPayload | undefined) {
++    if (this._alreadyTrackedNetworkIds.has(requestWillBeSentEvent.initiator.requestId)) return;
+     if (requestWillBeSentEvent.request.url.startsWith('data:'))
+       return;
+     let redirectedFrom: InterceptableRequest | null = null;
+@@ -342,7 +346,7 @@
          headersOverride = redirectedFrom?._originalRequestRoute?._alreadyContinuedParams?.headers;
          requestPausedSessionInfo!.session._sendMayFail('Fetch.continueRequest', { requestId: requestPausedEvent.requestId, headers: headersOverride });
        } else {
 -        route = new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId);
-+        route = new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId, this._page);
++        route = new RouteImpl(requestPausedSessionInfo!.session, requestPausedEvent.requestId, this._page, requestPausedEvent.networkId, this);
        }
      }
      const isNavigationRequest = requestWillBeSentEvent.requestId === requestWillBeSentEvent.loaderId && requestWillBeSentEvent.type === 'Document';
-@@ -606,9 +608,11 @@
+@@ -449,13 +453,7 @@
+   }
+ 
+   _handleRequestRedirect(request: InterceptableRequest, responsePayload: Protocol.Network.Response, timestamp: number, hasExtraInfo: boolean) {
+-    const response = this._createResponse(request, responsePayload, hasExtraInfo);
+-    response.setTransferSize(null);
+-    response.setEncodedBodySize(null);
+-    response._requestFinished((timestamp - request._timestamp) * 1000);
+-    this._deleteRequest(request);
+-    (this._page?._frameManager || this._serviceWorker)!.requestReceivedResponse(response);
+-    (this._page?._frameManager || this._serviceWorker)!.reportRequestFinished(request.request, response);
++    return;
+   }
+ 
+   _onResponseReceivedExtraInfo(event: Protocol.Network.responseReceivedExtraInfoPayload) {
+@@ -547,6 +545,8 @@
+     if (request.session !== sessionInfo.session && !sessionInfo.isMain && request._documentId === request._requestId)
+       request.session = sessionInfo.session;
+   }
++
++  _alreadyTrackedNetworkIds: Set<string> = new Set();
+ }
+ 
+ class InterceptableRequest {
+@@ -606,32 +606,82 @@
    _alreadyContinuedParams: Protocol.Fetch.continueRequestParameters | undefined;
    _fulfilled: boolean = false;
  
 -  constructor(session: CRSession, interceptionId: string) {
-+  constructor(session: CRSession, interceptionId: string, page: Page) {
++  constructor(session: CRSession, interceptionId: string, page: Page, networkId, sessionManager) {
++    this._sessionManager = void 0;
++    this._networkId = void 0;
 +    this._page = void 0;
      this._session = session;
      this._interceptionId = interceptionId;
 +    this._page = page;
++    this._networkId = networkId;
++    this._sessionManager = sessionManager;
++    eventsHelper.addEventListener(this._session, 'Fetch.requestPaused', async e => await this._networkRequestIntercepted(e));
    }
  
    async continue(overrides: types.NormalizedContinueOverrides): Promise<void> {
-@@ -625,6 +629,43 @@
+     this._alreadyContinuedParams = {
+-      requestId: this._interceptionId!,
++      requestId: this._interceptionId,
+       url: overrides.url,
+       headers: overrides.headers,
+       method: overrides.method,
+-      postData: overrides.postData ? overrides.postData.toString('base64') : undefined
++      postData: overrides.postData ? overrides.postData.toString('base64') : undefined,
+     };
+-    await catchDisallowedErrors(async () => {
+-      await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
+-    });
++    if (overrides.url && (overrides.url === 'http://patchright-init-script-inject.internal/' || overrides.url === 'https://patchright-init-script-inject.internal/')) {
++      await catchDisallowedErrors(async () => {
++        this._sessionManager._alreadyTrackedNetworkIds.add(this._networkId);
++        this._session.send('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
++      }) ;
++    } else {
++      await catchDisallowedErrors(async () => {
++        await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
++      });
++    }
    }
  
    async fulfill(response: types.NormalizedFulfillResponse) {
-+    const isTextHtml = response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
-+      var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
-+          for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
-+            if (!allInjections.includes(binding)) allInjections.push(binding);
-+          }
-+      if (isTextHtml && allInjections.length) {
-+        // I Chatted so hard for this Code
-+        let scriptNonce = crypto.randomBytes(22).toString('hex');
-+        for (let i = 0; i < response.headers.length; i++) {
-+          if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
-+            // Search for an existing script-src nonce that we can hijack
-+            let cspValue = response.headers[i].value;
-+            const nonceRegex = /script-src[^;]*'nonce-([\w-]+)'/;
-+            const nonceMatch = cspValue.match(nonceRegex);
-+            if (nonceMatch) {
-+              scriptNonce = nonceMatch[1];
-+            } else {
-+              // Add the new nonce value to the script-src directive
-+              const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
-+              const newCspValue = cspValue.replace(scriptSrcRegex, `$1 'nonce-${scriptNonce}'$2`);
-+              response.headers[i].value = newCspValue;
-+            }
-+            break;
-+          }
++    const isTextHtml = response.resourceType === 'Document' || response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
++    var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
++        for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
++          if (!allInjections.includes(binding)) allInjections.push(binding);
 +        }
-+        let injectionHTML = "";
-+        allInjections.forEach((script) => {
-+          let scriptId = _crypto.default.randomBytes(22).toString('hex');
-+          injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${script.source}</script>`;
-+        });
-+        if (response.isBase64) {
-+          response.isBase64 = false;
-+          response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
-+        } else {
-+          response.body = injectionHTML + response.body;
++    if (isTextHtml && allInjections.length) {
++      // I Chatted so hard for this Code
++      let scriptNonce = crypto.randomBytes(22).toString('hex');
++      for (let i = 0; i < response.headers.length; i++) {
++        if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
++          // Search for an existing script-src nonce that we can hijack
++          let cspValue = response.headers[i].value;
++          const nonceRegex = /script-src[^;]*'nonce-([\w-]+)'/;
++          const nonceMatch = cspValue.match(nonceRegex);
++          if (nonceMatch) {
++            scriptNonce = nonceMatch[1];
++          } else {
++            // Add the new nonce value to the script-src directive
++            const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
++            const newCspValue = cspValue.replace(scriptSrcRegex, `$1 'nonce-${scriptNonce}'$2`);
++            response.headers[i].value = newCspValue;
++          }
++          break;
 +        }
 +      }
++      let injectionHTML = "";
++      allInjections.forEach((script) => {
++        let scriptId = crypto.randomBytes(22).toString('hex');
++        injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${script.source}</script>`;
++      });
++      if (response.isBase64) {
++        response.isBase64 = false;
++        response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
++      } else {
++        response.body = injectionHTML + response.body;
++      }
++    }
      this._fulfilled = true;
      const body = response.isBase64 ? response.body : Buffer.from(response.body).toString('base64');
+-
+     const responseHeaders = splitSetCookieHeader(response.headers);
+     await catchDisallowedErrors(async () => {
+       await this._session.send('Fetch.fulfillRequest', {
+-        requestId: this._interceptionId!,
++        requestId: response.interceptionId ? response.interceptionId : this._interceptionId,
+         responseCode: response.status,
+         responsePhrase: network.statusText(response.status),
+         responseHeaders,
+@@ -650,6 +700,33 @@
+       });
+     });
+   }
++
++  async _networkRequestIntercepted(event) {
++    if (event.resourceType !== 'Document') {
++      await catchDisallowedErrors(async () => {
++        await this._session.send('Fetch.continueRequest', { requestId: event.requestId });
++      });
++      return;
++    }
++    if (this._networkId != event.networkId || !this._sessionManager._alreadyTrackedNetworkIds.has(event.networkId)) return;
++    try {
++      if (event.responseStatusCode >= 301 && event.responseStatusCode <= 308  || (event.redirectedRequestId && !event.responseStatusCode)) {
++        await this._session.send('Fetch.continueRequest', { requestId: event.requestId, interceptResponse: true });
++      } else {
++        const responseBody = await this._session.send('Fetch.getResponseBody', { requestId: event.requestId });
++        await this.fulfill({
++          headers: event.responseHeaders,
++          isBase64: true,
++          body: responseBody.body,
++          status: event.responseStatusCode,
++          interceptionId: event.requestId,
++          resourceType: event.resourceType,
++        })
++      }
++    } catch (error) {
++      await this._session._sendMayFail('Fetch.continueRequest', { requestId: event.requestId });
++    }
++  }
+ }
  
+ // In certain cases, protocol will return error if the request was already canceled
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patchright/packages/playwright-core/src/server/chromium/crPage.ts
---- playwright/packages/playwright-core/src/server/chromium/crPage.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crPage.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crPage.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crPage.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -1934,7 +2104,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
    }
  
    dispose() {
-@@ -565,18 +573,30 @@
+@@ -565,18 +573,31 @@
  
    async _navigate(frame: frames.Frame, url: string, referrer: string | undefined): Promise<frames.GotoResult> {
      const response = await this._client.send('Page.navigate', { url, referrer, frameId: frame._id, referrerPolicy: 'unsafeUrl' });
@@ -1952,7 +2122,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
        this._page._frameManager.frameLifecycleEvent(event.frameId, 'load');
      else if (event.name === 'DOMContentLoaded')
        this._page._frameManager.frameLifecycleEvent(event.frameId, 'domcontentloaded');
-+    var document = await this._client._sendMayFail("DOM.getDocument");
++    await this._client._sendMayFail('Runtime.runIfWaitingForDebugger');
++      var document = await this._client._sendMayFail("DOM.getDocument");
 +      if (!document) return
 +      var query = await this._client._sendMayFail("DOM.querySelectorAll", {
 +        nodeId: document.root.nodeId,
@@ -1966,7 +2137,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
    }
  
    _handleFrameTree(frameTree: Protocol.Page.FrameTree) {
-@@ -623,12 +643,23 @@
+@@ -623,12 +644,24 @@
      this._page._frameManager.frameAttached(frameId, parentFrameId);
    }
  
@@ -1977,7 +2148,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
      this._page._frameManager.frameCommittedNewDocumentNavigation(framePayload.id, framePayload.url + (framePayload.urlFragment || ''), framePayload.name || '', framePayload.loaderId, initial);
      if (!initial)
        this._firstNonInitialNavigationCommittedFulfill();
-+    var document = await this._client._sendMayFail("DOM.getDocument");
++    await this._client._sendMayFail('Runtime.runIfWaitingForDebugger');
++      var document = await this._client._sendMayFail("DOM.getDocument");
 +      if (!document) return
 +      var query = await this._client._sendMayFail("DOM.querySelectorAll", {
 +        nodeId: document.root.nodeId,
@@ -1991,7 +2163,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
    }
  
    _onFrameRequestedNavigation(payload: Protocol.Page.frameRequestedNavigationPayload) {
-@@ -665,19 +696,24 @@
+@@ -665,19 +698,24 @@
    }
  
    _onExecutionContextCreated(contextPayload: Protocol.Runtime.ExecutionContextDescription) {
@@ -2021,7 +2193,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
    }
  
    _onExecutionContextDestroyed(executionContextId: number) {
-@@ -693,7 +729,7 @@
+@@ -693,7 +731,7 @@
        this._onExecutionContextDestroyed(contextId);
    }
  
@@ -2030,7 +2202,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
      const session = this._client.createChildSession(event.sessionId);
  
      if (event.targetInfo.type === 'iframe') {
-@@ -725,8 +761,17 @@
+@@ -725,8 +763,17 @@
      session.once('Runtime.executionContextCreated', async event => {
        worker._createExecutionContext(new CRExecutionContext(session, event.context));
      });
@@ -2049,7 +2221,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
      // TODO: attribute workers to the right frame.
      this._crPage._networkManager.addSession(session, this._page._frameManager.frame(this._targetId) ?? undefined).catch(() => {});
      session._sendMayFail('Runtime.runIfWaitingForDebugger');
-@@ -805,8 +850,8 @@
+@@ -805,8 +852,8 @@
      const pageOrError = await this._crPage._page.waitForInitializedOrError();
      if (!(pageOrError instanceof Error)) {
        const context = this._contextIdToContext.get(event.executionContextId);
@@ -2060,7 +2232,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
      }
    }
  
-@@ -1052,16 +1097,11 @@
+@@ -1052,16 +1099,11 @@
    }
  
    async _evaluateOnNewDocument(initScript: InitScript, world: types.World): Promise<void> {
@@ -2079,7 +2251,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
    }
  
    async _getContentFrame(handle: dom.ElementHandle): Promise<frames.Frame | null> {
-@@ -1168,6 +1208,47 @@
+@@ -1168,6 +1210,47 @@
        throw new Error(dom.kUnableToAdoptErrorMessage);
      return createHandle(to, result.object).asElement()!;
    }
@@ -2128,8 +2300,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
  
  async function emulateLocale(session: CRSession, locale: string) {
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts
---- playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-20 09:23:10.585486682 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-25 20:35:52.954683542 +0000
 @@ -44,8 +44,6 @@
        this.updateOffline();
        this._networkManager.addSession(session, undefined, true /* isMain */).catch(() => {});
@@ -2140,8 +2312,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crServiceWorke
      session.on('Inspector.targetReloadedAfterCrash', () => {
        // Resume service worker after restart.
 diff -ruN playwright/packages/playwright-core/src/server/clock.ts patchright/packages/playwright-core/src/server/clock.ts
---- playwright/packages/playwright-core/src/server/clock.ts	2025-03-20 09:23:03.338461616 +0000
-+++ patchright/packages/playwright-core/src/server/clock.ts	2025-03-20 09:23:10.583486678 +0000
+--- playwright/packages/playwright-core/src/server/clock.ts	2025-03-25 20:35:46.274690309 +0000
++++ patchright/packages/playwright-core/src/server/clock.ts	2025-03-25 20:35:52.941683555 +0000
 @@ -92,6 +92,14 @@
    }
  
@@ -2158,8 +2330,8 @@ diff -ruN playwright/packages/playwright-core/src/server/clock.ts patchright/pac
    }
  }
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-20 09:23:03.340461624 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-25 20:35:46.276690307 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -84,11 +84,15 @@
    }
  
@@ -2179,8 +2351,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/frameDispat
  
    async waitForSelector(params: channels.FrameWaitForSelectorParams, metadata: CallMetadata): Promise<channels.FrameWaitForSelectorResult> {
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-20 09:23:03.340461624 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-25 20:35:46.276690307 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -39,11 +39,11 @@
    }
  
@@ -2196,8 +2368,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/jsHandleDis
    }
  
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-20 09:23:03.340461624 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-25 20:35:46.276690307 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -353,11 +353,11 @@
    }
  
@@ -2213,8 +2385,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/pageDispatc
  }
  
 diff -ruN playwright/packages/playwright-core/src/server/firefox/ffPage.ts patchright/packages/playwright-core/src/server/firefox/ffPage.ts
---- playwright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-03-20 09:23:03.341461627 +0000
-+++ patchright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-03-20 09:23:10.586486685 +0000
+--- playwright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-03-25 20:35:46.277690306 +0000
++++ patchright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -390,7 +390,7 @@
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
@@ -2225,8 +2397,8 @@ diff -ruN playwright/packages/playwright-core/src/server/firefox/ffPage.ts patch
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
 diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/packages/playwright-core/src/server/frames.ts
---- playwright/packages/playwright-core/src/server/frames.ts	2025-03-20 09:23:03.341461627 +0000
-+++ patchright/packages/playwright-core/src/server/frames.ts	2025-03-20 09:23:10.583486678 +0000
+--- playwright/packages/playwright-core/src/server/frames.ts	2025-03-25 20:35:46.277690306 +0000
++++ patchright/packages/playwright-core/src/server/frames.ts	2025-03-25 20:35:52.941683555 +0000
 @@ -1,3 +1,7 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import { CRExecutionContext } from './chromium/crExecutionContext';
@@ -2923,9 +3095,9 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
  
  class SignalBarrier {
 diff -ruN playwright/packages/playwright-core/src/server/javascript.ts patchright/packages/playwright-core/src/server/javascript.ts
---- playwright/packages/playwright-core/src/server/javascript.ts	2025-03-20 09:23:03.343461635 +0000
-+++ patchright/packages/playwright-core/src/server/javascript.ts	2025-03-20 09:23:10.584486680 +0000
-@@ -149,17 +149,33 @@
+--- playwright/packages/playwright-core/src/server/javascript.ts	2025-03-25 20:35:46.279690304 +0000
++++ patchright/packages/playwright-core/src/server/javascript.ts	2025-03-25 20:35:52.952683544 +0000
+@@ -154,17 +154,33 @@
      return evaluate(this._context, false /* returnByValue */, pageFunction, this, arg);
    }
  
@@ -2970,9 +3142,9 @@ diff -ruN playwright/packages/playwright-core/src/server/javascript.ts patchrigh
    async getProperty(propertyName: string): Promise<JSHandle> {
      const objectHandle = await this.evaluateHandle((object: any, propertyName) => {
 diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/packages/playwright-core/src/server/page.ts
---- playwright/packages/playwright-core/src/server/page.ts	2025-03-20 09:23:03.343461635 +0000
-+++ patchright/packages/playwright-core/src/server/page.ts	2025-03-20 09:23:10.584486680 +0000
-@@ -60,7 +60,7 @@
+--- playwright/packages/playwright-core/src/server/page.ts	2025-03-25 20:35:46.279690304 +0000
++++ patchright/packages/playwright-core/src/server/page.ts	2025-03-25 20:35:52.952683544 +0000
+@@ -61,7 +61,7 @@
    goForward(): Promise<boolean>;
    requestGC(): Promise<void>;
    addInitScript(initScript: InitScript): Promise<void>;
@@ -2981,7 +3153,7 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
    closePage(runBeforeUnload: boolean): Promise<void>;
  
    navigateFrame(frame: frames.Frame, url: string, referrer: string | undefined): Promise<frames.GotoResult>;
-@@ -351,15 +351,15 @@
+@@ -352,15 +352,15 @@
        throw new Error(`Function "${name}" has been already registered in the browser context`);
      const binding = new PageBinding(name, playwrightBinding, needsHandle);
      this._pageBindings.set(name, binding);
@@ -3001,7 +3173,7 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
    }
  
    setExtraHTTPHeaders(headers: types.HeadersArray) {
-@@ -576,8 +576,8 @@
+@@ -577,8 +577,8 @@
    }
  
    async _removeInitScripts() {
@@ -3012,19 +3184,19 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
    }
  
    needsRequestInterception(): boolean {
-@@ -769,11 +769,6 @@
+@@ -770,11 +770,6 @@
        this._browserContext.addVisitedOrigin(origin);
    }
  
 -  allInitScripts() {
 -    const bindings = [...this._browserContext._pageBindings.values(), ...this._pageBindings.values()];
--    return [...bindings.map(binding => binding.initScript), ...this._browserContext.initScripts, ...this.initScripts];
+-    return [kBuiltinsScript, ...bindings.map(binding => binding.initScript), ...this._browserContext.initScripts, ...this.initScripts];
 -  }
 -
    getBinding(name: string) {
      return this._pageBindings.get(name) || this._browserContext._pageBindings.get(name);
    }
-@@ -810,6 +805,10 @@
+@@ -811,6 +806,10 @@
    markAsServerSideOnly() {
      this._isServerSideOnly = true;
    }
@@ -3035,7 +3207,7 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
  }
  
  export class Worker extends SdkObject {
-@@ -847,13 +846,29 @@
+@@ -848,30 +847,42 @@
      this.openScope.close(new Error('Worker closed'));
    }
  
@@ -3070,10 +3242,6 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
 +    }
  }
  
- type BindingPayload = {
-@@ -863,20 +878,16 @@
- };
- 
  export class PageBinding {
 -  static kPlaywrightBinding = '__playwright__binding__';
 -
@@ -3086,38 +3254,23 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
    constructor(name: string, playwrightFunction: frames.FunctionWithSource, needsHandle: boolean) {
      this.name = name;
      this.playwrightFunction = playwrightFunction;
--    this.initScript = new InitScript(`(${addPageBinding.toString()})(${JSON.stringify(PageBinding.kPlaywrightBinding)}, ${JSON.stringify(name)}, ${needsHandle}, (${source})())`, true /* internal */);
+-    this.initScript = new InitScript(createPageBindingScript(PageBinding.kPlaywrightBinding, name, needsHandle), true /* internal */);
 +    this.source = `(${addPageBinding.toString()})(${JSON.stringify(name)}, ${needsHandle}, (${source})())`;
      this.needsHandle = needsHandle;
 -    this.internal = name.startsWith('__pw');
    }
  
    static async dispatch(page: Page, payload: string, context: dom.FrameExecutionContext) {
-@@ -916,10 +927,13 @@
-       callbacks.delete(arg.seq);
+@@ -896,6 +907,8 @@
+       context.evaluate(deliverBindingResult, { name, seq, error }).catch(e => debugLogger.log('error', e));
      }
    }
 +
 +  readonly source: string;
  }
  
--function addPageBinding(playwrightBinding: string, bindingName: string, needsHandle: boolean, utilityScriptSerializers: ReturnType<typeof source>) {
--  const binding = (globalThis as any)[playwrightBinding];
-+function addPageBinding(bindingName: string, needsHandle: boolean, utilityScriptSerializers: ReturnType<typeof source>) {
-+  const binding = (globalThis as any)[bindingName];
-+  if (binding && binding.toString().startsWith("(...args) => {")) return
-   (globalThis as any)[bindingName] = (...args: any[]) => {
-     const me = (globalThis as any)[bindingName];
-     if (needsHandle && args.slice(1).some(arg => arg !== undefined))
-@@ -953,7 +967,6 @@
-     binding(JSON.stringify(payload));
-     return promise;
-   };
--  (globalThis as any)[bindingName].__installed = true;
- }
- 
  export class InitScript {
-@@ -963,14 +976,7 @@
+@@ -905,14 +918,7 @@
  
    constructor(source: string, internal?: boolean, name?: string) {
      const guid = createGuid();
@@ -3133,9 +3286,34 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
      this.internal = !!internal;
      this.name = name;
    }
+diff -ruN playwright/packages/playwright-core/src/server/pageBinding.ts patchright/packages/playwright-core/src/server/pageBinding.ts
+--- playwright/packages/playwright-core/src/server/pageBinding.ts	2025-03-25 20:35:46.279690304 +0000
++++ patchright/packages/playwright-core/src/server/pageBinding.ts	2025-03-25 20:35:52.952683544 +0000
+@@ -26,10 +26,11 @@
+   serializedArgs?: SerializedValue[],
+ };
+ 
+-function addPageBinding(playwrightBinding: string, bindingName: string, needsHandle: boolean, utilityScriptSerializersFactory: typeof source, builtins: Builtins) {
++function addPageBinding(bindingName: string, needsHandle: boolean, utilityScriptSerializersFactory: typeof source, builtins: Builtins) {
+   const { serializeAsCallArgument } = utilityScriptSerializersFactory(builtins);
+   // eslint-disable-next-line no-restricted-globals
+-  const binding = (globalThis as any)[playwrightBinding];
++  const binding = (globalThis as any)[bindingName];
++  if (binding && binding.toString().startsWith("(...args) => {")) return
+   // eslint-disable-next-line no-restricted-globals
+   (globalThis as any)[bindingName] = (...args: any[]) => {
+   // eslint-disable-next-line no-restricted-globals
+@@ -66,7 +67,6 @@
+     return promise;
+   };
+   // eslint-disable-next-line no-restricted-globals
+-  (globalThis as any)[bindingName].__installed = true;
+ }
+ 
+ export function takeBindingHandle(arg: { name: string, seq: number }) {
 diff -ruN playwright/packages/playwright-core/src/server/webkit/wkPage.ts patchright/packages/playwright-core/src/server/webkit/wkPage.ts
---- playwright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-03-20 09:23:03.346461646 +0000
-+++ patchright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-03-20 09:23:10.587486687 +0000
+--- playwright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-03-25 20:35:46.282690301 +0000
++++ patchright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-03-25 20:35:52.955683541 +0000
 @@ -768,7 +768,7 @@
      await this._updateBootstrapScript();
    }
@@ -3145,46 +3323,3381 @@ diff -ruN playwright/packages/playwright-core/src/server/webkit/wkPage.ts patchr
      await this._updateBootstrapScript();
    }
  
-diff -ruN playwright/packages/protocol/src/channels.d.ts patchright/packages/protocol/src/channels.d.ts
---- playwright/packages/protocol/src/channels.d.ts	2025-03-20 09:23:03.428461955 +0000
-+++ patchright/packages/protocol/src/channels.d.ts	2025-03-20 09:23:10.555486611 +0000
-@@ -2809,6 +2809,7 @@
-   expression: string,
-   isFunction?: boolean,
-   arg: SerializedArgument,
-+  isolatedContext?: boolean;
- };
- export type FrameEvaluateExpressionOptions = {
-   isFunction?: boolean,
-@@ -2820,6 +2821,7 @@
-   expression: string,
-   isFunction?: boolean,
-   arg: SerializedArgument,
-+  isolatedContext?: boolean;
- };
- export type FrameEvaluateExpressionHandleOptions = {
-   isFunction?: boolean,
-@@ -3269,6 +3271,7 @@
-   expression: string,
-   isFunction?: boolean,
-   arg: SerializedArgument,
-+  isolatedContext?: boolean;
- };
- export type WorkerEvaluateExpressionOptions = {
-   isFunction?: boolean,
-@@ -3280,6 +3283,7 @@
-   expression: string,
-   isFunction?: boolean,
-   arg: SerializedArgument,
-+  isolatedContext?: boolean;
- };
- export type WorkerEvaluateExpressionHandleOptions = {
-   isFunction?: boolean,
-@@ -3318,6 +3322,7 @@
-   expression: string,
-   isFunction?: boolean,
-   arg: SerializedArgument,
-+  isolatedContext?: boolean;
- };
- export type JSHandleEvaluateExpressionOptions = {
-   isFunction?: boolean,
+diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/protocol/src/protocol.yml
+--- playwright/packages/protocol/src/protocol.yml	2025-03-25 20:35:46.357690225 +0000
++++ patchright/packages/protocol/src/protocol.yml	2025-03-25 20:35:53.197683295 +0000
+@@ -1,17 +1,3 @@
+-# Copyright (c) Microsoft Corporation.
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-# http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+ StackFrame:
+   type: object
+   properties:
+@@ -19,9 +5,6 @@
+     line: number
+     column: number
+     function: string?
+-
+-# This object can be send with any rpc call in the "metadata" field.
+-
+ Metadata:
+   type: object
+   properties:
+@@ -33,9 +16,7 @@
+         column: number?
+     apiName: string?
+     internal: boolean?
+-    # Test runner step id.
+     stepId: string?
+-
+ ClientSideCallMetadata:
+   type: object
+   properties:
+@@ -43,14 +24,11 @@
+     stack:
+       type: array?
+       items: StackFrame
+-
+ Point:
+   type: object
+   properties:
+     x: number
+     y: number
+-
+-
+ Rect:
+   type: object
+   properties:
+@@ -58,11 +36,8 @@
+     y: number
+     width: number
+     height: number
+-
+-
+ SerializedValue:
+   type: object
+-  # Exactly one of the properties must be present.
+   properties:
+     n: number?
+     b: boolean?
+@@ -70,26 +45,21 @@
+     v:
+       type: enum?
+       literals:
+-      - null
+-      - undefined
+-      - NaN
+-      - Infinity
+-      - -Infinity
+-      - "-0"
+-    # String representation of the Date.
++        - null
++        - undefined
++        - NaN
++        - Infinity
++        - -Infinity
++        - "-0"
+     d: string?
+-    # String representation of the URL.
+     u: string?
+-    # String representation of BigInt.
+     bi: string?
+-    # Serialized Error object.
+     e:
+       type: object?
+       properties:
+         m: string
+         n: string
+         s: string
+-    # Regular expression pattern and flags.
+     r:
+       type: object?
+       properties:
+@@ -98,7 +68,6 @@
+     a:
+       type: array?
+       items: SerializedValue
+-    # Object with keys and values.
+     o:
+       type: array?
+       items:
+@@ -106,15 +75,9 @@
+         properties:
+           k: string
+           v: SerializedValue
+-    # An index in the handles array from SerializedArgument.
+     h: number?
+-    # Index of the object in value-type for circular reference resolution.
+     id: number?
+-    # Ref to the object in value-type for circular reference resolution.
+     ref: number?
+-
+-
+-# Represents a value with handle references.
+ SerializedArgument:
+   type: object
+   properties:
+@@ -122,8 +85,6 @@
+     handles:
+       type: array
+       items: Channel
+-
+-
+ ExpectedTextValue:
+   type: object
+   properties:
+@@ -133,8 +94,6 @@
+     matchSubstring: boolean?
+     ignoreCase: boolean?
+     normalizeWhiteSpace: boolean?
+-
+-
+ AXNode:
+   type: object
+   properties:
+@@ -158,15 +117,15 @@
+     checked:
+       type: enum?
+       literals:
+-      - checked
+-      - unchecked
+-      - mixed
++        - checked
++        - unchecked
++        - mixed
+     pressed:
+       type: enum?
+       literals:
+-      - pressed
+-      - released
+-      - mixed
++        - pressed
++        - released
++        - mixed
+     level: number?
+     valuemin: number?
+     valuemax: number?
+@@ -177,8 +136,6 @@
+     children:
+       type: array?
+       items: AXNode
+-
+-
+ SetNetworkCookie:
+   type: object
+   properties:
+@@ -193,11 +150,9 @@
+     sameSite:
+       type: enum?
+       literals:
+-      - Strict
+-      - Lax
+-      - None
+-
+-
++        - Strict
++        - Lax
++        - None
+ NetworkCookie:
+   type: object
+   properties:
+@@ -211,17 +166,14 @@
+     sameSite:
+       type: enum
+       literals:
+-      - Strict
+-      - Lax
+-      - None
+-
+-
++        - Strict
++        - Lax
++        - None
+ NameValue:
+   type: object
+   properties:
+     name: string
+     value: string
+-
+ IndexedDBDatabase:
+   type: object
+   properties:
+@@ -259,7 +211,6 @@
+                   items: string
+                 multiEntry: boolean
+                 unique: boolean
+-
+ SetOriginStorage:
+   type: object
+   properties:
+@@ -270,7 +221,6 @@
+     indexedDB:
+       type: array?
+       items: IndexedDBDatabase
+-
+ OriginStorage:
+   type: object
+   properties:
+@@ -281,7 +231,6 @@
+     indexedDB:
+       type: array?
+       items: IndexedDBDatabase
+-
+ SerializedError:
+   type: object
+   properties:
+@@ -292,8 +241,6 @@
+         name: string
+         stack: string?
+     value: SerializedValue?
+-
+-
+ RecordHarOptions:
+   type: object
+   properties:
+@@ -301,19 +248,17 @@
+     content:
+       type: enum?
+       literals:
+-      - embed
+-      - attach
+-      - omit
++        - embed
++        - attach
++        - omit
+     mode:
+       type: enum?
+       literals:
+-      - full
+-      - minimal
++        - full
++        - minimal
+     urlGlob: string?
+     urlRegexSource: string?
+     urlRegexFlags: string?
+-
+-
+ FormField:
+   type: object
+   properties:
+@@ -325,15 +270,11 @@
+         name: string
+         mimeType: string?
+         buffer: binary
+-
+ APIRequestContext:
+   type: interface
+-
+   initializer:
+     tracing: Tracing
+-
+   commands:
+-
+     fetch:
+       parameters:
+         url: string
+@@ -360,13 +301,11 @@
+         maxRetries: number?
+       returns:
+         response: APIResponse
+-
+     fetchResponseBody:
+       parameters:
+         fetchUid: string
+       returns:
+         binary: binary?
+-
+     fetchLog:
+       parameters:
+         fetchUid: string
+@@ -374,7 +313,6 @@
+         log:
+           type: array
+           items: string
+-
+     storageState:
+       parameters:
+         indexedDB: boolean?
+@@ -385,16 +323,12 @@
+         origins:
+           type: array
+           items: OriginStorage
+-
+     disposeAPIResponse:
+       parameters:
+         fetchUid: string
+-
+     dispose:
+       parameters:
+         reason: string?
+-
+-
+ APIResponse:
+   type: object
+   properties:
+@@ -405,16 +339,13 @@
+     headers:
+       type: array
+       items: NameValue
+-
+-
+ LifecycleEvent:
+   type: enum
+   literals:
+-  - load
+-  - domcontentloaded
+-  - networkidle
+-  - commit
+-
++    - load
++    - domcontentloaded
++    - networkidle
++    - commit
+ CommonScreenshotOptions:
+   type: mixin
+   properties:
+@@ -422,18 +353,18 @@
+     caret:
+       type: enum?
+       literals:
+-      - hide
+-      - initial
++        - hide
++        - initial
+     animations:
+       type: enum?
+       literals:
+-      - disabled
+-      - allow
++        - disabled
++        - allow
+     scale:
+       type: enum?
+       literals:
+-      - css
+-      - device
++        - css
++        - device
+     mask:
+       type: array?
+       items:
+@@ -443,7 +374,6 @@
+           selector: string
+     maskColor: string?
+     style: string?
+-
+ LaunchOptions:
+   type: mixin
+   properties:
+@@ -476,8 +406,6 @@
+     tracesDir: string?
+     chromiumSandbox: boolean?
+     firefoxUserPrefs: json?
+-
+-
+ ContextOptions:
+   type: mixin
+   properties:
+@@ -530,42 +458,42 @@
+         send:
+           type: enum?
+           literals:
+-          - always
+-          - unauthorized
++            - always
++            - unauthorized
+     deviceScaleFactor: number?
+     isMobile: boolean?
+     hasTouch: boolean?
+     colorScheme:
+       type: enum?
+       literals:
+-      - dark
+-      - light
+-      - no-preference
+-      - no-override
++        - dark
++        - light
++        - no-preference
++        - no-override
+     reducedMotion:
+       type: enum?
+       literals:
+-      - reduce
+-      - no-preference
+-      - no-override
++        - reduce
++        - no-preference
++        - no-override
+     forcedColors:
+       type: enum?
+       literals:
+-      - active
+-      - none
+-      - no-override
++        - active
++        - none
++        - no-override
+     acceptDownloads:
+       type: enum?
+       literals:
+-      - accept
+-      - deny
+-      - internal-browser-default
++        - accept
++        - deny
++        - internal-browser-default
+     contrast:
+       type: enum?
+       literals:
+-      - no-preference
+-      - more
+-      - no-override
++        - no-preference
++        - more
++        - no-override
+     baseURL: string?
+     recordVideo:
+       type: object?
+@@ -581,12 +509,10 @@
+     serviceWorkers:
+       type: enum?
+       literals:
+-      - allow
+-      - block
+-
++        - allow
++        - block
+ LocalUtils:
+   type: interface
+-
+   initializer:
+     deviceDescriptors:
+       type: array
+@@ -614,12 +540,10 @@
+               defaultBrowserType:
+                 type: enum
+                 literals:
+-                - chromium
+-                - firefox
+-                - webkit
+-
++                  - chromium
++                  - firefox
++                  - webkit
+   commands:
+-
+     zip:
+       parameters:
+         zipFile: string
+@@ -633,14 +557,12 @@
+             - write
+             - append
+         includeSources: boolean
+-
+     harOpen:
+       parameters:
+         file: string
+       returns:
+         harId: string?
+         error: string?
+-
+     harLookup:
+       parameters:
+         harId: string
+@@ -655,10 +577,10 @@
+         action:
+           type: enum
+           literals:
+-          - error
+-          - redirect
+-          - fulfill
+-          - noentry
++            - error
++            - redirect
++            - fulfill
++            - noentry
+         message: string?
+         redirectURL: string?
+         status: number?
+@@ -666,16 +588,13 @@
+           type: array?
+           items: NameValue
+         body: binary?
+-
+     harClose:
+       parameters:
+         harId: string
+-
+     harUnzip:
+       parameters:
+         zipFile: string
+         harFile: string
+-
+     connect:
+       parameters:
+         wsEndpoint: string
+@@ -689,22 +608,18 @@
+         headers:
+           type: array
+           items: NameValue
+-
+     tracingStarted:
+       parameters:
+         tracesDir: string?
+         traceName: string
+       returns:
+         stacksId: string
+-
+     addStackToTracingNoReply:
+       parameters:
+         callData: ClientSideCallMetadata
+-
+     traceDiscarded:
+       parameters:
+         stacksId: string
+-
+     globToRegex:
+       parameters:
+         glob: string
+@@ -712,27 +627,22 @@
+         webSocketUrl: boolean?
+       returns:
+         regex: string
+-
+ Root:
+   type: interface
+-
+   commands:
+-
+     initialize:
+       parameters:
+         sdkLanguage:
+           type: enum
+           literals:
+-          - javascript
+-          - python
+-          - java
+-          - csharp
++            - javascript
++            - python
++            - java
++            - csharp
+       returns:
+         playwright: Playwright
+-
+ Playwright:
+   type: interface
+-
+   initializer:
+     chromium: BrowserType
+     firefox: BrowserType
+@@ -743,13 +653,9 @@
+     electron: Electron
+     utils: LocalUtils?
+     selectors: Selectors
+-    # Only present when connecting remotely via BrowserType.connect() method.
+     preLaunchedBrowser: Browser?
+-    # Only present when connecting remotely via Android.connect() method.
+     preConnectedAndroidDevice: AndroidDevice?
+-    # Only present when socks proxy is supported.
+     socksSupport: SocksSupport?
+-
+   commands:
+     newRequest:
+       parameters:
+@@ -780,8 +686,8 @@
+             send:
+               type: enum?
+               literals:
+-              - always
+-              - unauthorized
++                - always
++                - unauthorized
+         proxy:
+           type: object?
+           properties:
+@@ -800,10 +706,8 @@
+               type: array?
+               items: SetOriginStorage
+         tracesDir: string?
+-
+       returns:
+         request: APIRequestContext
+-
+ RecorderSource:
+   type: object
+   properties:
+@@ -821,10 +725,8 @@
+           type: string
+     revealLine: number?
+     group: string?
+-
+ DebugController:
+   type: interface
+-
+   commands:
+     initialize:
+       parameters:
+@@ -832,21 +734,17 @@
+         sdkLanguage:
+           type: enum
+           literals:
+-          - javascript
+-          - python
+-          - java
+-          - csharp
+-
++            - javascript
++            - python
++            - java
++            - csharp
+     setReportStateChanged:
+       parameters:
+         enabled: boolean
+-
+-    resetForReuse:
+-
++    resetForReuse: null
+     navigate:
+       parameters:
+         url: string
+-
+     setRecorderMode:
+       parameters:
+         mode:
+@@ -856,35 +754,26 @@
+             - recording
+             - none
+         testIdAttributeName: string?
+-
+     highlight:
+       parameters:
+         selector: string?
+         ariaTemplate: string?
+-
+-    hideHighlight:
+-
+-    resume:
+-
+-    kill:
+-
+-    closeAllBrowsers:
+-
++    hideHighlight: null
++    resume: null
++    kill: null
++    closeAllBrowsers: null
+   events:
+     inspectRequested:
+       parameters:
+         selector: string
+         locator: string
+         ariaSnapshot: string
+-
+     setModeRequested:
+       parameters:
+         mode: string
+-
+     stateChanged:
+       parameters:
+         pageCount: number
+-
+     sourceChanged:
+       parameters:
+         text: string
+@@ -893,87 +782,68 @@
+         actions:
+           type: array?
+           items: string
+-
+     paused:
+       parameters:
+         paused: boolean
+-
+ SocksSupport:
+   type: interface
+-
+   commands:
+     socksConnected:
+       parameters:
+         uid: string
+         host: string
+         port: number
+-
+     socksFailed:
+       parameters:
+         uid: string
+         errorCode: string
+-
+     socksData:
+       parameters:
+         uid: string
+         data: binary
+-
+     socksError:
+       parameters:
+         uid: string
+         error: string
+-
+     socksEnd:
+       parameters:
+         uid: string
+-
+   events:
+     socksRequested:
+       parameters:
+         uid: string
+         host: string
+         port: number
+-
+     socksData:
+       parameters:
+         uid: string
+         data: binary
+-
+     socksClosed:
+       parameters:
+         uid: string
+-
+ Selectors:
+   type: interface
+-
+   commands:
+-
+     register:
+       parameters:
+         name: string
+         source: string
+         contentScript: boolean?
+-
+     setTestIdAttributeName:
+       parameters:
+         testIdAttributeName: string
+-
+ BrowserType:
+   type: interface
+-
+   initializer:
+     executablePath: string
+     name: string
+-
+   commands:
+-
+     launch:
+       parameters:
+         $mixin: LaunchOptions
+         slowMo: number?
+       returns:
+         browser: Browser
+-
+     launchPersistentContext:
+       parameters:
+         $mixin1: LaunchOptions
+@@ -982,7 +852,6 @@
+         slowMo: number?
+       returns:
+         context: BrowserContext
+-
+     connectOverCDP:
+       parameters:
+         endpointURL: string
+@@ -994,26 +863,19 @@
+       returns:
+         browser: Browser
+         defaultContext: BrowserContext?
+-
+ Browser:
+   type: interface
+-
+   initializer:
+     version: string
+     name: string
+-
+   commands:
+-
+     close:
+       parameters:
+         reason: string?
+-
+-    killForTests:
+-
++    killForTests: null
+     defaultUserAgentForTest:
+       returns:
+         userAgent: string
+-
+     newContext:
+       parameters:
+         $mixin: ContextOptions
+@@ -1035,7 +897,6 @@
+               items: SetOriginStorage
+       returns:
+         context: BrowserContext
+-
+     newContextForReuse:
+       parameters:
+         $mixin: ContextOptions
+@@ -1057,15 +918,12 @@
+               items: SetOriginStorage
+       returns:
+         context: BrowserContext
+-
+     stopPendingOperations:
+       parameters:
+         reason: string
+-
+     newBrowserCDPSession:
+       returns:
+         session: CDPSession
+-
+     startTracing:
+       parameters:
+         page: Page?
+@@ -1073,16 +931,11 @@
+         categories:
+           type: array?
+           items: string
+-
+     stopTracing:
+       returns:
+         artifact: Artifact
+-
+-
+   events:
+-
+-    close:
+-
++    close: null
+ ConsoleMessage:
+   type: mixin
+   properties:
+@@ -1097,11 +950,8 @@
+         url: string
+         lineNumber: number
+         columnNumber: number
+-
+-
+ EventTarget:
+   type: interface
+-
+   commands:
+     waitForEventInfo:
+       parameters:
+@@ -1112,37 +962,30 @@
+             phase:
+               type: enum
+               literals:
+-              - before
+-              - after
+-              - log
++                - before
++                - after
++                - log
+             event: string?
+             message: string?
+             error: string?
+       flags:
+         snapshot: true
+-
+ BrowserContext:
+   type: interface
+-
+   extends: EventTarget
+-
+   initializer:
+     isChromium: boolean
+     requestContext: APIRequestContext
+     tracing: Tracing
+-
+   commands:
+-
+     addCookies:
+       parameters:
+         cookies:
+           type: array
+           items: SetNetworkCookie
+-
+     addInitScript:
+       parameters:
+         source: string
+-
+     clearCookies:
+       parameters:
+         name: string?
+@@ -1154,13 +997,10 @@
+         path: string?
+         pathRegexSource: string?
+         pathRegexFlags: string?
+-
+-    clearPermissions:
+-
++    clearPermissions: null
+     close:
+       parameters:
+         reason: string?
+-
+     cookies:
+       parameters:
+         urls:
+@@ -1170,37 +1010,30 @@
+         cookies:
+           type: array
+           items: NetworkCookie
+-
+     exposeBinding:
+       parameters:
+         name: string
+         needsHandle: boolean?
+-
+     grantPermissions:
+       parameters:
+         permissions:
+           type: array
+           items: string
+         origin: string?
+-
+     newPage:
+       returns:
+         page: Page
+-
+     setDefaultNavigationTimeoutNoReply:
+       parameters:
+         timeout: number?
+-
+     setDefaultTimeoutNoReply:
+       parameters:
+         timeout: number?
+-
+     setExtraHTTPHeaders:
+       parameters:
+         headers:
+           type: array
+           items: NameValue
+-
+     setGeolocation:
+       parameters:
+         geolocation:
+@@ -1209,7 +1042,6 @@
+             longitude: number
+             latitude: number
+             accuracy: number?
+-
+     setHTTPCredentials:
+       parameters:
+         httpCredentials:
+@@ -1218,7 +1050,6 @@
+             username: string
+             password: string
+             origin: string?
+-
+     setNetworkInterceptionPatterns:
+       parameters:
+         patterns:
+@@ -1229,7 +1060,6 @@
+               glob: string?
+               regexSource: string?
+               regexFlags: string?
+-
+     setWebSocketInterceptionPatterns:
+       parameters:
+         patterns:
+@@ -1240,11 +1070,9 @@
+               glob: string?
+               regexSource: string?
+               regexFlags: string?
+-
+     setOffline:
+       parameters:
+         offline: boolean
+-
+     storageState:
+       parameters:
+         indexedDB: boolean?
+@@ -1255,19 +1083,17 @@
+         origins:
+           type: array
+           items: OriginStorage
+-
+     pause:
+-      experimental: True
+-
++      experimental: true
+     enableRecorder:
+-      experimental: True
++      experimental: true
+       parameters:
+         language: string?
+         mode:
+           type: enum?
+           literals:
+-          - inspecting
+-          - recording
++            - inspecting
++            - recording
+         pauseOnNextStatement: boolean?
+         testIdAttributeName: string?
+         launchOptions: json?
+@@ -1277,27 +1103,23 @@
+         outputFile: string?
+         handleSIGINT: boolean?
+         omitCallTracking: boolean?
+-
+     newCDPSession:
+       parameters:
+         page: Page?
+         frame: Frame?
+       returns:
+         session: CDPSession
+-
+     harStart:
+       parameters:
+         page: Page?
+         options: RecordHarOptions
+       returns:
+         harId: string
+-
+     harExport:
+       parameters:
+         harId: string?
+       returns:
+         artifact: Artifact
+-
+     createTempFiles:
+       parameters:
+         rootDirName: string?
+@@ -1313,127 +1135,100 @@
+         writableStreams:
+           type: array
+           items: WritableStream
+-
+     updateSubscription:
+       parameters:
+         event:
+           type: enum
+           literals:
+-          - console
+-          - dialog
+-          - request
+-          - response
+-          - requestFinished
+-          - requestFailed
++            - console
++            - dialog
++            - request
++            - response
++            - requestFinished
++            - requestFailed
+         enabled: boolean
+-
+     clockFastForward:
+       parameters:
+         ticksNumber: number?
+         ticksString: string?
+-
+     clockInstall:
+       parameters:
+         timeNumber: number?
+         timeString: string?
+-
+     clockPauseAt:
+       parameters:
+         timeNumber: number?
+         timeString: string?
+-
+-    clockResume:
+-
++    clockResume: null
+     clockRunFor:
+       parameters:
+         ticksNumber: number?
+         ticksString: string?
+-
+     clockSetFixedTime:
+       parameters:
+         timeNumber: number?
+         timeString: string?
+-
+     clockSetSystemTime:
+       parameters:
+         timeNumber: number?
+         timeString: string?
+-
+   events:
+-
+     bindingCall:
+       parameters:
+         binding: BindingCall
+-
+     console:
+       parameters:
+         $mixin: ConsoleMessage
+         page: Page
+-
+-    close:
+-
++    close: null
+     dialog:
+       parameters:
+         dialog: Dialog
+-
+     page:
+       parameters:
+         page: Page
+-
+     pageError:
+       parameters:
+         error: SerializedError
+         page: Page
+-
+     route:
+       parameters:
+         route: Route
+-
+     webSocketRoute:
+       parameters:
+         webSocketRoute: WebSocketRoute
+-
+     video:
+       parameters:
+         artifact: Artifact
+-
+     backgroundPage:
+       parameters:
+         page: Page
+-
+     serviceWorker:
+       parameters:
+         worker: Worker
+-
+     request:
+       parameters:
+         request: Request
+         page: Page?
+-
+     requestFailed:
+       parameters:
+         request: Request
+         failureText: string?
+         responseEndTiming: number
+         page: Page?
+-
+     requestFinished:
+       parameters:
+         request: Request
+         response: Response?
+         responseEndTiming: number
+         page: Page?
+-
+     response:
+       parameters:
+         response: Response
+         page: Page?
+-
+ Page:
+   type: interface
+-
+   extends: EventTarget
+-
+   initializer:
+     mainFrame: Frame
+     viewportSize:
+@@ -1443,67 +1238,59 @@
+         height: number
+     isClosed: boolean
+     opener: Page?
+-
+   commands:
+-
+     setDefaultNavigationTimeoutNoReply:
+       parameters:
+         timeout: number?
+-
+     setDefaultTimeoutNoReply:
+       parameters:
+         timeout: number?
+-
+     addInitScript:
+       parameters:
+         source: string
+-
+     close:
+       parameters:
+         runBeforeUnload: boolean?
+         reason: string?
+-
+     emulateMedia:
+       parameters:
+         media:
+           type: enum?
+           literals:
+-          - screen
+-          - print
+-          - no-override
++            - screen
++            - print
++            - no-override
+         colorScheme:
+           type: enum?
+           literals:
+-          - dark
+-          - light
+-          - no-preference
+-          - no-override
++            - dark
++            - light
++            - no-preference
++            - no-override
+         reducedMotion:
+           type: enum?
+           literals:
+-          - reduce
+-          - no-preference
+-          - no-override
++            - reduce
++            - no-preference
++            - no-override
+         forcedColors:
+           type: enum?
+           literals:
+-          - active
+-          - none
+-          - no-override
++            - active
++            - none
++            - no-override
+         contrast:
+           type: enum?
+           literals:
+-          - no-preference
+-          - more
+-          - no-override
++            - no-preference
++            - more
++            - no-override
+       flags:
+         snapshot: true
+-
+     exposeBinding:
+       parameters:
+         name: string
+         needsHandle: boolean?
+-
+     goBack:
+       parameters:
+         timeout: number?
+@@ -1513,7 +1300,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     goForward:
+       parameters:
+         timeout: number?
+@@ -1523,25 +1309,20 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+-    requestGC:
+-
++    requestGC: null
+     registerLocatorHandler:
+       parameters:
+         selector: string
+         noWaitAfter: boolean?
+       returns:
+         uid: number
+-
+     resolveLocatorHandlerNoReply:
+       parameters:
+         uid: number
+         remove: boolean?
+-
+     unregisterLocatorHandler:
+       parameters:
+         uid: number
+-
+     reload:
+       parameters:
+         timeout: number?
+@@ -1551,7 +1332,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     expectScreenshot:
+       parameters:
+         expected: binary?
+@@ -1580,15 +1360,14 @@
+           items: string
+       flags:
+         snapshot: true
+-
+     screenshot:
+       parameters:
+         timeout: number?
+         type:
+           type: enum?
+           literals:
+-          - png
+-          - jpeg
++            - png
++            - jpeg
+         quality: number?
+         fullPage: boolean?
+         clip: Rect?
+@@ -1597,13 +1376,11 @@
+         binary: binary
+       flags:
+         snapshot: true
+-
+     setExtraHTTPHeaders:
+       parameters:
+         headers:
+           type: array
+           items: NameValue
+-
+     setNetworkInterceptionPatterns:
+       parameters:
+         patterns:
+@@ -1614,7 +1391,6 @@
+               glob: string?
+               regexSource: string?
+               regexFlags: string?
+-
+     setWebSocketInterceptionPatterns:
+       parameters:
+         patterns:
+@@ -1625,7 +1401,6 @@
+               glob: string?
+               regexSource: string?
+               regexFlags: string?
+-
+     setViewportSize:
+       parameters:
+         viewportSize:
+@@ -1635,28 +1410,24 @@
+             height: number
+       flags:
+         snapshot: true
+-
+     keyboardDown:
+       parameters:
+         key: string
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     keyboardUp:
+       parameters:
+         key: string
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     keyboardInsertText:
+       parameters:
+         text: string
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     keyboardType:
+       parameters:
+         text: string
+@@ -1664,7 +1435,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     keyboardPress:
+       parameters:
+         key: string
+@@ -1672,7 +1442,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     mouseMove:
+       parameters:
+         x: number
+@@ -1681,33 +1450,30 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     mouseDown:
+       parameters:
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         clickCount: number?
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     mouseUp:
+       parameters:
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         clickCount: number?
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     mouseClick:
+       parameters:
+         x: number
+@@ -1716,14 +1482,13 @@
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         clickCount: number?
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     mouseWheel:
+       parameters:
+         deltaX: number
+@@ -1731,7 +1496,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     touchscreenTap:
+       parameters:
+         x: number
+@@ -1739,7 +1503,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     accessibilitySnapshot:
+       parameters:
+         interestingOnly: boolean?
+@@ -1748,7 +1511,6 @@
+         rootAXNode: AXNode?
+       flags:
+         snapshot: true
+-
+     pdf:
+       parameters:
+         scale: number?
+@@ -1773,12 +1535,10 @@
+         outline: boolean?
+       returns:
+         pdf: binary
+-
+     startJSCoverage:
+       parameters:
+         resetOnNavigation: boolean?
+         reportAnonymousScripts: boolean?
+-
+     stopJSCoverage:
+       returns:
+         entries:
+@@ -1804,11 +1564,9 @@
+                           startOffset: number
+                           endOffset: number
+                           count: number
+-
+     startCSSCoverage:
+       parameters:
+         resetOnNavigation: boolean?
+-
+     stopCSSCoverage:
+       returns:
+         entries:
+@@ -1825,81 +1583,61 @@
+                   properties:
+                     start: number
+                     end: number
+-
+-    bringToFront:
+-
++    bringToFront: null
+     updateSubscription:
+       parameters:
+         event:
+           type: enum
+           literals:
+-          - console
+-          - dialog
+-          - fileChooser
+-          - request
+-          - response
+-          - requestFinished
+-          - requestFailed
++            - console
++            - dialog
++            - fileChooser
++            - request
++            - response
++            - requestFinished
++            - requestFailed
+         enabled: boolean
+-
+   events:
+-
+     bindingCall:
+       parameters:
+         binding: BindingCall
+-
+-    close:
+-
+-    crash:
+-
++    close: null
++    crash: null
+     download:
+       parameters:
+         url: string
+         suggestedFilename: string
+         artifact: Artifact
+-
+     fileChooser:
+       parameters:
+         element: ElementHandle
+         isMultiple: boolean
+-
+     frameAttached:
+       parameters:
+         frame: Frame
+-
+     frameDetached:
+       parameters:
+         frame: Frame
+-
+     locatorHandlerTriggered:
+       parameters:
+         uid: number
+-
+     route:
+       parameters:
+         route: Route
+-
+     webSocketRoute:
+       parameters:
+         webSocketRoute: WebSocketRoute
+-
+     video:
+       parameters:
+         artifact: Artifact
+-
+     webSocket:
+       parameters:
+         webSocket: WebSocket
+-
+     worker:
+       parameters:
+         worker: Worker
+-
+-
+-
+ Frame:
+   type: interface
+-
+   initializer:
+     url: string
+     name: string
+@@ -1907,9 +1645,7 @@
+     loadStates:
+       type: array
+       items: LifecycleEvent
+-
+   commands:
+-
+     evalOnSelector:
+       parameters:
+         selector: string
+@@ -1921,7 +1657,6 @@
+         value: SerializedValue
+       flags:
+         snapshot: true
+-
+     evalOnSelectorAll:
+       parameters:
+         selector: string
+@@ -1932,7 +1667,6 @@
+         value: SerializedValue
+       flags:
+         snapshot: true
+-
+     addScriptTag:
+       parameters:
+         url: string?
+@@ -1942,7 +1676,6 @@
+         element: ElementHandle
+       flags:
+         snapshot: true
+-
+     addStyleTag:
+       parameters:
+         url: string?
+@@ -1951,7 +1684,6 @@
+         element: ElementHandle
+       flags:
+         snapshot: true
+-
+     ariaSnapshot:
+       parameters:
+         selector: string
+@@ -1959,14 +1691,13 @@
+         mode:
+           type: enum?
+           literals:
+-          - raw
+-          - regex
++            - raw
++            - regex
+         timeout: number?
+       returns:
+         snapshot: string
+       flags:
+         snapshot: true
+-
+     blur:
+       parameters:
+         selector: string
+@@ -1975,7 +1706,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     check:
+       parameters:
+         selector: string
+@@ -1988,7 +1718,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     click:
+       parameters:
+         selector: string
+@@ -2000,19 +1729,19 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         delay: number?
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         clickCount: number?
+         timeout: number?
+         trial: boolean?
+@@ -2020,13 +1749,11 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     content:
+       returns:
+         value: string
+       flags:
+         snapshot: true
+-
+     dragAndDrop:
+       parameters:
+         source: string
+@@ -2041,7 +1768,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     dblclick:
+       parameters:
+         selector: string
+@@ -2052,26 +1778,25 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         delay: number?
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         timeout: number?
+         trial: boolean?
+       flags:
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     dispatchEvent:
+       parameters:
+         selector: string
+@@ -2082,27 +1807,26 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     evaluateExpression:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
++        isolatedContext: boolean?
+       returns:
+         value: SerializedValue
+       flags:
+         snapshot: true
+-
+     evaluateExpressionHandle:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
++        isolatedContext: boolean?
+       returns:
+         handle: JSHandle
+       flags:
+         snapshot: true
+-
+     fill:
+       parameters:
+         selector: string
+@@ -2114,7 +1838,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     focus:
+       parameters:
+         selector: string
+@@ -2123,15 +1846,12 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     frameElement:
+       returns:
+         element: ElementHandle
+-
+     highlight:
+       parameters:
+         selector: string
+-
+     getAttribute:
+       parameters:
+         selector: string
+@@ -2142,7 +1862,6 @@
+         value: string?
+       flags:
+         snapshot: true
+-
+     goto:
+       parameters:
+         url: string
+@@ -2154,7 +1873,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     hover:
+       parameters:
+         selector: string
+@@ -2165,11 +1883,11 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         timeout: number?
+         trial: boolean?
+@@ -2177,7 +1895,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     innerHTML:
+       parameters:
+         selector: string
+@@ -2187,7 +1904,6 @@
+         value: string
+       flags:
+         snapshot: true
+-
+     innerText:
+       parameters:
+         selector: string
+@@ -2197,7 +1913,6 @@
+         value: string
+       flags:
+         snapshot: true
+-
+     inputValue:
+       parameters:
+         selector: string
+@@ -2207,7 +1922,6 @@
+         value: string
+       flags:
+         snapshot: true
+-
+     isChecked:
+       parameters:
+         selector: string
+@@ -2217,7 +1931,6 @@
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isDisabled:
+       parameters:
+         selector: string
+@@ -2227,7 +1940,6 @@
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isEnabled:
+       parameters:
+         selector: string
+@@ -2237,7 +1949,6 @@
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isHidden:
+       parameters:
+         selector: string
+@@ -2246,7 +1957,6 @@
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isVisible:
+       parameters:
+         selector: string
+@@ -2255,7 +1965,6 @@
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isEditable:
+       parameters:
+         selector: string
+@@ -2265,7 +1974,6 @@
+         value: boolean
+       flags:
+         snapshot: true
+-
+     press:
+       parameters:
+         selector: string
+@@ -2278,7 +1986,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     querySelector:
+       parameters:
+         selector: string
+@@ -2287,7 +1994,6 @@
+         element: ElementHandle?
+       flags:
+         snapshot: true
+-
+     querySelectorAll:
+       parameters:
+         selector: string
+@@ -2297,7 +2003,6 @@
+           items: ElementHandle
+       flags:
+         snapshot: true
+-
+     queryCount:
+       parameters:
+         selector: string
+@@ -2305,7 +2010,6 @@
+         value: number
+       flags:
+         snapshot: true
+-
+     selectOption:
+       parameters:
+         selector: string
+@@ -2332,7 +2036,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     setContent:
+       parameters:
+         html: string
+@@ -2340,12 +2043,10 @@
+         waitUntil: LifecycleEvent?
+       flags:
+         snapshot: true
+-
+     setInputFiles:
+       parameters:
+         selector: string
+         strict: boolean?
+-        # Only one of payloads, localPaths and streams should be present.
+         payloads:
+           type: array?
+           items:
+@@ -2367,7 +2068,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     tap:
+       parameters:
+         selector: string
+@@ -2378,11 +2078,11 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         timeout: number?
+         trial: boolean?
+@@ -2390,7 +2090,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     textContent:
+       parameters:
+         selector: string
+@@ -2400,11 +2099,9 @@
+         value: string?
+       flags:
+         snapshot: true
+-
+     title:
+       returns:
+         value: string
+-
+     type:
+       parameters:
+         selector: string
+@@ -2416,7 +2113,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     uncheck:
+       parameters:
+         selector: string
+@@ -2429,26 +2125,22 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     waitForTimeout:
+       parameters:
+         timeout: number
+       flags:
+         snapshot: true
+-
+     waitForFunction:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
+         timeout: number?
+-        # When present, polls on interval. Otherwise, polls on raf.
+         pollingInterval: number?
+       returns:
+         handle: JSHandle
+       flags:
+         snapshot: true
+-
+     waitForSelector:
+       parameters:
+         selector: string
+@@ -2457,16 +2149,15 @@
+         state:
+           type: enum?
+           literals:
+-          - attached
+-          - detached
+-          - visible
+-          - hidden
++            - attached
++            - detached
++            - visible
++            - hidden
+         omitReturnValue: boolean?
+       returns:
+         element: ElementHandle?
+       flags:
+         snapshot: true
+-
+     expect:
+       parameters:
+         selector: string
+@@ -2489,14 +2180,11 @@
+           items: string
+       flags:
+         snapshot: true
+-
+   events:
+-
+     loadstate:
+       parameters:
+         add: LifecycleEvent?
+         remove: LifecycleEvent?
+-
+     navigated:
+       parameters:
+         url: string
+@@ -2506,68 +2194,55 @@
+           properties:
+             request: Request?
+         error: string?
+-
+-
+-
+ Worker:
+   type: interface
+-
+   initializer:
+     url: string
+-
+   commands:
+-
+     evaluateExpression:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
++        isolatedContext: boolean?
+       returns:
+         value: SerializedValue
+-
+     evaluateExpressionHandle:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
++        isolatedContext: boolean?
+       returns:
+         handle: JSHandle
+-
+   events:
+-
+-    close:
+-
+-
++    close: null
+ JSHandle:
+   type: interface
+-
+   initializer:
+     preview: string
+-
+   commands:
+-
+-    dispose:
+-
++    dispose: null
+     evaluateExpression:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
++        isolatedContext: boolean?
+       returns:
+         value: SerializedValue
+       flags:
+         snapshot: true
+-
+     evaluateExpressionHandle:
+       parameters:
+         expression: string
+         isFunction: boolean?
+         arg: SerializedArgument
++        isolatedContext: boolean?
+       returns:
+         handle: JSHandle
+       flags:
+         snapshot: true
+-
+     getPropertyList:
+       returns:
+         properties:
+@@ -2577,32 +2252,22 @@
+             properties:
+               name: string
+               value: JSHandle
+-
+     getProperty:
+       parameters:
+         name: string
+       returns:
+         handle: JSHandle
+-
+     jsonValue:
+       returns:
+         value: SerializedValue
+-
+   events:
+-
+     previewUpdated:
+       parameters:
+         preview: string
+-
+-
+-
+ ElementHandle:
+   type: interface
+-
+   extends: JSHandle
+-
+   commands:
+-
+     evalOnSelector:
+       parameters:
+         selector: string
+@@ -2614,7 +2279,6 @@
+         value: SerializedValue
+       flags:
+         snapshot: true
+-
+     evalOnSelectorAll:
+       parameters:
+         selector: string
+@@ -2625,13 +2289,11 @@
+         value: SerializedValue
+       flags:
+         snapshot: true
+-
+     boundingBox:
+       returns:
+         value: Rect?
+       flags:
+         snapshot: true
+-
+     check:
+       parameters:
+         force: boolean?
+@@ -2642,7 +2304,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     click:
+       parameters:
+         force: boolean?
+@@ -2652,19 +2313,19 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         delay: number?
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         clickCount: number?
+         timeout: number?
+         trial: boolean?
+@@ -2672,13 +2333,11 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     contentFrame:
+       returns:
+         frame: Frame?
+       flags:
+         snapshot: true
+-
+     dblclick:
+       parameters:
+         force: boolean?
+@@ -2687,26 +2346,25 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         delay: number?
+         button:
+           type: enum?
+           literals:
+-          - left
+-          - right
+-          - middle
++            - left
++            - right
++            - middle
+         timeout: number?
+         trial: boolean?
+       flags:
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     dispatchEvent:
+       parameters:
+         type: string
+@@ -2714,7 +2372,6 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     fill:
+       parameters:
+         value: string
+@@ -2724,22 +2381,18 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     focus:
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     generateLocatorString:
+       returns:
+         value: string?
+-
+     getAttribute:
+       parameters:
+         name: string
+       returns:
+         value: string?
+-
+     hover:
+       parameters:
+         force: boolean?
+@@ -2748,11 +2401,11 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         timeout: number?
+         trial: boolean?
+@@ -2760,65 +2413,54 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     innerHTML:
+       returns:
+         value: string
+       flags:
+         snapshot: true
+-
+     innerText:
+       returns:
+         value: string
+       flags:
+         snapshot: true
+-
+     inputValue:
+       returns:
+         value: string
+       flags:
+         snapshot: true
+-
+     isChecked:
+       returns:
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isDisabled:
+       returns:
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isEditable:
+       returns:
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isEnabled:
+       returns:
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isHidden:
+       returns:
+         value: boolean
+       flags:
+         snapshot: true
+-
+     isVisible:
+       returns:
+         value: boolean
+       flags:
+         snapshot: true
+-
+     ownerFrame:
+       returns:
+         frame: Frame?
+-
+     press:
+       parameters:
+         key: string
+@@ -2829,7 +2471,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     querySelector:
+       parameters:
+         selector: string
+@@ -2838,7 +2479,6 @@
+         element: ElementHandle?
+       flags:
+         snapshot: true
+-
+     querySelectorAll:
+       parameters:
+         selector: string
+@@ -2848,29 +2488,26 @@
+           items: ElementHandle
+       flags:
+         snapshot: true
+-
+     screenshot:
+       parameters:
+         timeout: number?
+         type:
+           type: enum?
+           literals:
+-          - png
+-          - jpeg
++            - png
++            - jpeg
+         quality: number?
+         $mixin: CommonScreenshotOptions
+       returns:
+         binary: binary
+       flags:
+         snapshot: true
+-
+     scrollIntoViewIfNeeded:
+       parameters:
+         timeout: number?
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     selectOption:
+       parameters:
+         elements:
+@@ -2895,7 +2532,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     selectText:
+       parameters:
+         force: boolean?
+@@ -2903,10 +2539,8 @@
+       flags:
+         slowMo: true
+         snapshot: true
+-
+     setInputFiles:
+       parameters:
+-        # Only one of payloads, localPaths and streams should be present.
+         payloads:
+           type: array?
+           items:
+@@ -2928,7 +2562,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     tap:
+       parameters:
+         force: boolean?
+@@ -2937,11 +2570,11 @@
+           items:
+             type: enum
+             literals:
+-            - Alt
+-            - Control
+-            - ControlOrMeta
+-            - Meta
+-            - Shift
++              - Alt
++              - Control
++              - ControlOrMeta
++              - Meta
++              - Shift
+         position: Point?
+         timeout: number?
+         trial: boolean?
+@@ -2949,13 +2582,11 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     textContent:
+       returns:
+         value: string?
+       flags:
+         snapshot: true
+-
+     type:
+       parameters:
+         text: string
+@@ -2965,7 +2596,6 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     uncheck:
+       parameters:
+         force: boolean?
+@@ -2976,22 +2606,20 @@
+         slowMo: true
+         snapshot: true
+         pausesBeforeInput: true
+-
+     waitForElementState:
+       parameters:
+         state:
+           type: enum
+           literals:
+-          - visible
+-          - hidden
+-          - stable
+-          - enabled
+-          - disabled
+-          - editable
++            - visible
++            - hidden
++            - stable
++            - enabled
++            - disabled
++            - editable
+         timeout: number?
+       flags:
+         snapshot: true
+-
+     waitForSelector:
+       parameters:
+         selector: string
+@@ -3000,19 +2628,16 @@
+         state:
+           type: enum?
+           literals:
+-          - attached
+-          - detached
+-          - visible
+-          - hidden
++            - attached
++            - detached
++            - visible
++            - hidden
+       returns:
+         element: ElementHandle?
+       flags:
+         snapshot: true
+-
+-
+ Request:
+   type: interface
+-
+   initializer:
+     frame: Frame?
+     serviceWorker: Worker?
+@@ -3025,36 +2650,26 @@
+       items: NameValue
+     isNavigationRequest: boolean
+     redirectedFrom: Request?
+-
+   commands:
+-
+     response:
+       returns:
+         response: Response?
+-
+     rawRequestHeaders:
+       returns:
+         headers:
+           type: array
+           items: NameValue
+-
+-
+ Route:
+   type: interface
+-
+   initializer:
+     request: Request
+-
+   commands:
+-
+     redirectNavigationRequest:
+       parameters:
+         url: string
+-
+     abort:
+       parameters:
+         errorCode: string?
+-
+     continue:
+       parameters:
+         url: string?
+@@ -3064,10 +2679,8 @@
+           items: NameValue
+         postData: binary?
+         isFallback: boolean
+-
+     fulfill:
+       parameters:
+-        # default is 200
+         status: number?
+         headers:
+           type: array?
+@@ -3075,67 +2688,50 @@
+         body: string?
+         isBase64: boolean?
+         fetchResponseUid: string?
+-
+-
+ WebSocketRoute:
+   type: interface
+-
+   initializer:
+     url: string
+-
+   commands:
+-
+-    connect:
+-
+-    ensureOpened:
+-
++    connect: null
++    ensureOpened: null
+     sendToPage:
+       parameters:
+         message: string
+         isBase64: boolean
+-
+     sendToServer:
+       parameters:
+         message: string
+         isBase64: boolean
+-
+     closePage:
+       parameters:
+         code: number?
+         reason: string?
+         wasClean: boolean
+-
+     closeServer:
+       parameters:
+         code: number?
+         reason: string?
+         wasClean: boolean
+-
+   events:
+-
+     messageFromPage:
+       parameters:
+         message: string
+         isBase64: boolean
+-
+     messageFromServer:
+       parameters:
+         message: string
+         isBase64: boolean
+-
+     closePage:
+       parameters:
+         code: number?
+         reason: string?
+         wasClean: boolean
+-
+     closeServer:
+       parameters:
+         code: number?
+         reason: string?
+         wasClean: boolean
+-
+-
+ ResourceTiming:
+   type: object
+   properties:
+@@ -3147,10 +2743,8 @@
+     connectEnd: number
+     requestStart: number
+     responseStart: number
+-
+ Response:
+   type: interface
+-
+   initializer:
+     request: Request
+     url: string
+@@ -3161,33 +2755,24 @@
+       items: NameValue
+     timing: ResourceTiming
+     fromServiceWorker: boolean
+-
+-
+   commands:
+-
+     body:
+       returns:
+         binary: binary
+-
+     securityDetails:
+       returns:
+         value: SecurityDetails?
+-
+     serverAddr:
+       returns:
+         value: RemoteAddr?
+-
+     rawResponseHeaders:
+       returns:
+         headers:
+           type: array
+           items: NameValue
+-
+     sizes:
+       returns:
+         sizes: RequestSizes
+-
+-
+ SecurityDetails:
+   type: object
+   properties:
+@@ -3196,7 +2781,6 @@
+     subjectName: string?
+     validFrom: number?
+     validTo: number?
+-
+ RequestSizes:
+   type: object
+   properties:
+@@ -3204,46 +2788,32 @@
+     requestHeadersSize: number
+     responseBodySize: number
+     responseHeadersSize: number
+-
+-
+ RemoteAddr:
+   type: object
+   properties:
+     ipAddress: string
+     port: number
+-
+-
+ WebSocket:
+   type: interface
+-
+   extends: EventTarget
+-
+   initializer:
+     url: string
+-
+   events:
+-    open:
+-
++    open: null
+     frameSent:
+       parameters:
+         opcode: number
+         data: string
+-
+     frameReceived:
+       parameters:
+         opcode: number
+         data: string
+-
+     socketError:
+       parameters:
+         error: string
+-
+-    close:
+-
+-
++    close: null
+ BindingCall:
+   type: interface
+-
+   initializer:
+     frame: Frame
+     name: string
+@@ -3251,56 +2821,40 @@
+       type: array?
+       items: SerializedValue
+     handle: JSHandle?
+-
+   commands:
+-
+     reject:
+       parameters:
+         error: SerializedError
+-
+     resolve:
+       parameters:
+         result: SerializedArgument
+-
+-
+-
+ Dialog:
+   type: interface
+-
+   initializer:
+     page: Page?
+     type: string
+     message: string
+     defaultValue: string
+-
+   commands:
+-
+     accept:
+       parameters:
+         promptText: string?
+-
+-    dismiss:
+-
+-
++    dismiss: null
+ Tracing:
+   type: interface
+-
+   commands:
+-
+     tracingStart:
+       parameters:
+         name: string?
+         snapshots: boolean?
+         screenshots: boolean?
+         live: boolean?
+-
+     tracingStartChunk:
+       parameters:
+         name: string?
+         title: string?
+       returns:
+         traceName: string
+-
+     tracingGroup:
+       parameters:
+         name: string
+@@ -3310,117 +2864,77 @@
+             file: string
+             line: number?
+             column: number?
+-
+-    tracingGroupEnd:
+-
++    tracingGroupEnd: null
+     tracingStopChunk:
+       parameters:
+         mode:
+           type: enum
+           literals:
+-          - archive
+-          - discard
+-          - entries
++            - archive
++            - discard
++            - entries
+       returns:
+-        # The artifact may be missing if the browser closes while tracing is being stopped.
+-        # Or it can be missing if client-side compression is taking place.
+         artifact: Artifact?
+-        # For local mode, these are all entries.
+         entries:
+           type: array?
+           items: NameValue
+-
+-    tracingStop:
+-
+-
++    tracingStop: null
+ Artifact:
+   type: interface
+-
+   initializer:
+     absolutePath: string
+-
+   commands:
+-
+     pathAfterFinished:
+       returns:
+         value: string
+-
+-    # Blocks path/failure/delete/context.close until saved to the local |path|.
+     saveAs:
+       parameters:
+         path: string
+-
+-    # Blocks path/failure/delete/context.close until the stream is closed.
+     saveAsStream:
+       returns:
+         stream: Stream
+-
+     failure:
+       returns:
+         error: string?
+-
+     stream:
+       returns:
+         stream: Stream
+-
+-    cancel:
+-
+-    delete:
+-
+-
++    cancel: null
++    delete: null
+ Stream:
+   type: interface
+-
+   commands:
+-
+     read:
+       parameters:
+         size: number?
+       returns:
+         binary: binary
+-
+-    close:
+-
+-
++    close: null
+ WritableStream:
+   type: interface
+-
+   commands:
+-
+     write:
+       parameters:
+         binary: binary
+-
+-    close:
+-
+-
++    close: null
+ CDPSession:
+   type: interface
+-
+   commands:
+-
+     send:
+       parameters:
+         method: string
+         params: json?
+       returns:
+         result: json
+-
+-    detach:
+-
++    detach: null
+   events:
+-
+     event:
+       parameters:
+         method: string
+         params: json?
+-
+-
+ Electron:
+   type: interface
+-
+   commands:
+-
+     launch:
+       parameters:
+         executablePath: string?
+@@ -3435,17 +2949,17 @@
+         acceptDownloads:
+           type: enum?
+           literals:
+-          - accept
+-          - deny
+-          - internal-browser-default
++            - accept
++            - deny
++            - internal-browser-default
+         bypassCSP: boolean?
+         colorScheme:
+           type: enum?
+           literals:
+-          - dark
+-          - light
+-          - no-preference
+-          - no-override
++            - dark
++            - light
++            - no-preference
++            - no-override
+         extraHTTPHeaders:
+           type: array?
+           items: NameValue
+@@ -3477,27 +2991,19 @@
+         strictSelectors: boolean?
+         timezoneId: string?
+         tracesDir: string?
+-
+       returns:
+         electronApplication: ElectronApplication
+-
+-
+ ElectronApplication:
+   type: interface
+-
+   extends: EventTarget
+-
+   initializer:
+     context: BrowserContext
+-
+   commands:
+-
+     browserWindow:
+       parameters:
+         page: Page
+       returns:
+         handle: JSHandle
+-
+     evaluateExpression:
+       parameters:
+         expression: string
+@@ -3505,7 +3011,6 @@
+         arg: SerializedArgument
+       returns:
+         value: SerializedValue
+-
+     evaluateExpressionHandle:
+       parameters:
+         expression: string
+@@ -3513,26 +3018,21 @@
+         arg: SerializedArgument
+       returns:
+         handle: JSHandle
+-
+     updateSubscription:
+       parameters:
+         event:
+           type: enum
+           literals:
+-          - console
++            - console
+         enabled: boolean
+-
+   events:
+-    close:
++    close: null
+     console:
+       parameters:
+         $mixin: ConsoleMessage
+-
+ Android:
+   type: interface
+-
+   commands:
+-
+     devices:
+       parameters:
+         host: string?
+@@ -3542,36 +3042,27 @@
+         devices:
+           type: array
+           items: AndroidDevice
+-
+     setDefaultTimeoutNoReply:
+       parameters:
+         timeout: number
+-
+ AndroidSocket:
+   type: interface
+-
+   commands:
+     write:
+       parameters:
+         data: binary
+-
+-    close:
+-
++    close: null
+   events:
+     data:
+       parameters:
+         data: binary
+-    close:
+-
++    close: null
+ AndroidDevice:
+   type: interface
+-
+   extends: EventTarget
+-
+   initializer:
+     model: string
+     serial: string
+-
+   commands:
+     wait:
+       parameters:
+@@ -3579,123 +3070,106 @@
+         state:
+           type: enum?
+           literals:
+-          - gone
++            - gone
+         timeout: number?
+-
+     fill:
+       parameters:
+         selector: AndroidSelector
+         text: string
+         timeout: number?
+-
+     tap:
+       parameters:
+         selector: AndroidSelector
+         duration: number?
+         timeout: number?
+-
+     drag:
+       parameters:
+         selector: AndroidSelector
+         dest: Point
+         speed: number?
+         timeout: number?
+-
+     fling:
+       parameters:
+         selector: AndroidSelector
+         direction:
+           type: enum
+           literals:
+-          - up
+-          - down
+-          - left
+-          - right
++            - up
++            - down
++            - left
++            - right
+         speed: number?
+         timeout: number?
+-
+     longTap:
+       parameters:
+         selector: AndroidSelector
+         timeout: number?
+-
+     pinchClose:
+       parameters:
+         selector: AndroidSelector
+         percent: number
+         speed: number?
+         timeout: number?
+-
+     pinchOpen:
+       parameters:
+         selector: AndroidSelector
+         percent: number
+         speed: number?
+         timeout: number?
+-
+     scroll:
+       parameters:
+         selector: AndroidSelector
+         direction:
+           type: enum
+           literals:
+-          - up
+-          - down
+-          - left
+-          - right
++            - up
++            - down
++            - left
++            - right
+         percent: number
+         speed: number?
+         timeout: number?
+-
+     swipe:
+       parameters:
+         selector: AndroidSelector
+         direction:
+           type: enum
+           literals:
+-          - up
+-          - down
+-          - left
+-          - right
++            - up
++            - down
++            - left
++            - right
+         percent: number
+         speed: number?
+         timeout: number?
+-
+     info:
+       parameters:
+         selector: AndroidSelector
+       returns:
+         info: AndroidElementInfo
+-
+     screenshot:
+       returns:
+         binary: binary
+-
+     inputType:
+       parameters:
+         text: string
+-
+     inputPress:
+       parameters:
+         key: string
+-
+     inputTap:
+       parameters:
+         point: Point
+-
+     inputSwipe:
+       parameters:
+         segments:
+           type: array
+           items: Point
+         steps: number
+-
+     inputDrag:
+       parameters:
+         from: Point
+         to: Point
+         steps: number
+-
+     launchBrowser:
+       parameters:
+         $mixin: ContextOptions
+@@ -3710,67 +3184,52 @@
+             bypass: string?
+             username: string?
+             password: string?
+-
+       returns:
+         context: BrowserContext
+-
+     open:
+       parameters:
+         command: string
+       returns:
+         socket: AndroidSocket
+-
+     shell:
+       parameters:
+         command: string
+       returns:
+         result: binary
+-
+     installApk:
+       parameters:
+         file: binary
+         args:
+           type: array?
+           items: string
+-
+     push:
+       parameters:
+         file: binary
+         path: string
+         mode: number?
+-
+     setDefaultTimeoutNoReply:
+       parameters:
+         timeout: number
+-
+     connectToWebView:
+       parameters:
+         socketName: string
+       returns:
+         context: BrowserContext
+-
+-    close:
+-
++    close: null
+   events:
+-    close:
+-
++    close: null
+     webViewAdded:
+       parameters:
+         webView: AndroidWebView
+-
+     webViewRemoved:
+       parameters:
+         socketName: string
+-
+-
+ AndroidWebView:
+   type: object
+   properties:
+     pid: number
+     pkg: string
+     socketName: string
+-
+-
+ AndroidSelector:
+   type: object
+   properties:
+@@ -3798,8 +3257,6 @@
+     scrollable: boolean?
+     selected: boolean?
+     text: string?
+-
+-
+ AndroidElementInfo:
+   type: object
+   properties:
+@@ -3821,24 +3278,17 @@
+     longClickable: boolean
+     scrollable: boolean
+     selected: boolean
+-
+-
+ JsonPipe:
+   type: interface
+-
+   commands:
+     send:
+       parameters:
+         message: json
+-
+-    close:
+-
++    close: null
+   events:
+-
+     message:
+       parameters:
+         message: json
+-
+     closed:
+       parameters:
+         reason: string?
