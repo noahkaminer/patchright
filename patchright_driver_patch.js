@@ -884,7 +884,7 @@ isVisibleInternalMethod.setBodyText(`try {
     return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
   }, 100); // A bit geeky but its okay :D
 } catch (e) {
-  if (js.isJavaScriptErrorInEvaluate(e) || (0, _selectorParser.isInvalidSelectorError)(e) || (0, _protocolError.isSessionClosedError)(e)) throw e;
+  if (js.isJavaScriptErrorInEvaluate(e) || isInvalidSelectorError(e) || isSessionClosedError(e)) throw e;
   return false;
 }`)
 
