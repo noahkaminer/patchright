@@ -988,7 +988,8 @@ while (parsed.parts.length > 0) {
 
   if (part.name == "xpath") {
     isUsingXPath = true;
-  } else if (part.name == "nth") {
+  }
+  if (part.name == "nth") {
     const partNth = Number(part.body);
     if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
       return continuePolling;
