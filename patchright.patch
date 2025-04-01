@@ -1,7 +1,7 @@
 # NOTE: This patch file is generated automatically and is not used, it is only for documentation. The driver is actually patched using [patchright_driver_patch](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/blob/main/patchright_driver_patch.js), see [the workflow](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/blob/main/.github/workflows/patchright_workflow.yml)
 diff -ruN playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts
---- playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-03-26 11:15:38.988390869 +0000
-+++ patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:28.224744441 +0000
++++ patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -376,7 +376,7 @@
        this._initScriptIds.push(script);
    }
@@ -12,8 +12,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts pa
      this._initScriptIds = [];
      await Promise.all(promises);
 diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts patchright/node_modules/playwright-core/src/server/browserContext.ts
---- playwright/node_modules/playwright-core/src/server/browserContext.ts	2025-03-26 11:15:38.988390869 +0000
-+++ patchright/node_modules/playwright-core/src/server/browserContext.ts	2025-03-26 11:15:45.463448917 +0000
+--- playwright/node_modules/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:28.224744441 +0000
++++ patchright/node_modules/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:34.987772202 +0000
 @@ -150,7 +150,7 @@
      if (debugMode() === 'console')
        await this.extendInjectedScript(consoleApiSource.source);
@@ -56,8 +56,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts p
  
    async setRequestInterceptor(handler: network.RouteHandler | undefined): Promise<void> {
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts
---- playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -58,27 +58,16 @@
    '--disable-field-trial-config', // https://source.chromium.org/chromium/chromium/src/+/main:testing/variations/README.md
    '--disable-background-networking',
@@ -97,8 +97,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/chromiumSw
 +  '--disable-blink-features=AutomationControlled'
  ];
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -474,11 +474,6 @@
        await (page._delegate as CRPage).addInitScript(initScript);
    }
@@ -129,8 +129,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crBrowser.
 +  }
  }
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -67,7 +67,6 @@
        }).catch(e => null);
      });
@@ -140,8 +140,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crDevTools
        session.send('Page.enable'),
        session.send('Page.addScriptToEvaluateOnNewDocument', { source: `
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -332,8 +332,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
  
  // In certain cases, protocol will return error if the request was already canceled
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts patchright/node_modules/playwright-core/src/server/chromium/crPage.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -638,8 +638,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
  
  async function emulateLocale(session: CRSession, locale: string) {
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -44,8 +44,6 @@
        this.updateOffline();
        this._networkManager.addSession(session, undefined, true /* isMain */).catch(() => {});
@@ -650,8 +650,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crServiceW
      session.on('Inspector.targetReloadedAfterCrash', () => {
        // Resume service worker after restart.
 diff -ruN playwright/node_modules/playwright-core/src/server/clock.ts patchright/node_modules/playwright-core/src/server/clock.ts
---- playwright/node_modules/playwright-core/src/server/clock.ts	2025-03-26 11:15:38.990390887 +0000
-+++ patchright/node_modules/playwright-core/src/server/clock.ts	2025-03-26 11:15:45.463448917 +0000
+--- playwright/node_modules/playwright-core/src/server/clock.ts	2025-04-01 20:35:28.226744450 +0000
++++ patchright/node_modules/playwright-core/src/server/clock.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -92,6 +92,14 @@
    }
  
@@ -668,8 +668,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/clock.ts patchright
    }
  }
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-26 11:15:38.991390896 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -84,11 +84,15 @@
    }
  
@@ -689,8 +689,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/frameDi
  
    async waitForSelector(params: channels.FrameWaitForSelectorParams, metadata: CallMetadata): Promise<channels.FrameWaitForSelectorResult> {
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-26 11:15:38.991390896 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -39,11 +39,11 @@
    }
  
@@ -706,8 +706,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/jsHandl
    }
  
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-26 11:15:38.991390896 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -353,11 +353,11 @@
    }
  
@@ -723,8 +723,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/pageDis
  }
  
 diff -ruN playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts
---- playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-03-26 11:15:38.992390905 +0000
-+++ patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:28.228744459 +0000
++++ patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -390,7 +390,7 @@
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
@@ -735,8 +735,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts p
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
 diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchright/node_modules/playwright-core/src/server/frames.ts
---- playwright/node_modules/playwright-core/src/server/frames.ts	2025-03-26 11:15:38.992390905 +0000
-+++ patchright/node_modules/playwright-core/src/server/frames.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/node_modules/playwright-core/src/server/frames.ts	2025-04-01 20:35:28.228744459 +0000
++++ patchright/node_modules/playwright-core/src/server/frames.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -1,3 +1,7 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import { CRExecutionContext } from './chromium/crExecutionContext';
@@ -1006,15 +1006,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 -      if (!resolved)
 +      if (!resolved) {
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-         return continuePolling;
--      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
--        const elements = injected.querySelectorAll(info.parsed, document);
--        if (callId)
--          injected.markTargetElements(new Set(elements), callId);
--        const element = elements[0] as Element | undefined;
--        let log = '';
--        if (elements.length > 1) {
--          if (info.strict)
++        return continuePolling;
 +      }
 +
 +      try {
@@ -1037,7 +1029,15 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +      if (currentScopingElements.length == 0) {
 +        // TODO: Dispose?
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-+        return continuePolling;
+         return continuePolling;
+-      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
+-        const elements = injected.querySelectorAll(info.parsed, document);
+-        if (callId)
+-          injected.markTargetElements(new Set(elements), callId);
+-        const element = elements[0] as Element | undefined;
+-        let log = '';
+-        if (elements.length > 1) {
+-          if (info.strict)
 +      }
 +      const resultElement = currentScopingElements[0];
 +      if (currentScopingElements.length > 1) {
@@ -1165,6 +1165,18 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +        }, { handle, options, handles });
 +      }
 +    }, 'returnAll');
++
++    // Default Values, if no Elements found
++    var matches = false;
++    var received = 0;
++    var missingReceived = null;
++    if (promise) {
++      matches = promise.matches;
++      received = promise.received;
++      missingReceived = promise.missingReceived;
++    } else if (options.expectedNumber === 0) {
++      matches = true;
++    }
  
 -    const { log, matches, received, missingReceived } = await injected.evaluate(async (injected, { info, options, callId }) => {
 -      const elements = info ? injected.querySelectorAll(info.parsed, document) : [];
@@ -1184,18 +1196,6 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 -    if (log)
 -      progress.log(log);
 -    // Note: missingReceived avoids `unexpected value "undefined"` when element was not found.
-+    // Default Values, if no Elements found
-+    var matches = false;
-+    var received = 0;
-+    var missingReceived = null;
-+    if (promise) {
-+      matches = promise.matches;
-+      received = promise.received;
-+      missingReceived = promise.missingReceived;
-+    } else if (options.expectedNumber === 0) {
-+      matches = true;
-+    }
-+
 +    // Note: missingReceived avoids unexpected value "undefined" when element was not found.
      if (matches === options.isNot) {
        lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
@@ -1262,7 +1262,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1864,169 @@
+@@ -1757,6 +1864,170 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -1304,7 +1304,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +
 +      if (part.name == "xpath") {
 +        isUsingXPath = true;
-+      } else if (part.name == "nth") {
++      }
++      if (part.name == "nth") {
 +        const partNth = Number(part.body);
 +        if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
 +          return continuePolling;
@@ -1433,8 +1434,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
  
  class SignalBarrier {
 diff -ruN playwright/node_modules/playwright-core/src/server/javascript.ts patchright/node_modules/playwright-core/src/server/javascript.ts
---- playwright/node_modules/playwright-core/src/server/javascript.ts	2025-03-26 11:15:38.994390923 +0000
-+++ patchright/node_modules/playwright-core/src/server/javascript.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/node_modules/playwright-core/src/server/javascript.ts	2025-04-01 20:35:28.230744468 +0000
++++ patchright/node_modules/playwright-core/src/server/javascript.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -154,17 +154,33 @@
      return evaluate(this._context, false /* returnByValue */, pageFunction, this, arg);
    }
@@ -1480,8 +1481,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/javascript.ts patch
    async getProperty(propertyName: string): Promise<JSHandle> {
      const objectHandle = await this.evaluateHandle((object: any, propertyName) => {
 diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/node_modules/playwright-core/src/server/page.ts
---- playwright/node_modules/playwright-core/src/server/page.ts	2025-03-26 11:15:38.994390923 +0000
-+++ patchright/node_modules/playwright-core/src/server/page.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/node_modules/playwright-core/src/server/page.ts	2025-04-01 20:35:28.231744473 +0000
++++ patchright/node_modules/playwright-core/src/server/page.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -61,7 +61,7 @@
    goForward(): Promise<boolean>;
    requestGC(): Promise<void>;
@@ -1625,8 +1626,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
      this.name = name;
    }
 diff -ruN playwright/node_modules/playwright-core/src/server/pageBinding.ts patchright/node_modules/playwright-core/src/server/pageBinding.ts
---- playwright/node_modules/playwright-core/src/server/pageBinding.ts	2025-03-26 11:15:38.994390923 +0000
-+++ patchright/node_modules/playwright-core/src/server/pageBinding.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/node_modules/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:28.231744473 +0000
++++ patchright/node_modules/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -26,10 +26,11 @@
    serializedArgs?: SerializedValue[],
  };
@@ -1650,8 +1651,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/pageBinding.ts patc
  
  export function takeBindingHandle(arg: { name: string, seq: number }) {
 diff -ruN playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts
---- playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-03-26 11:15:38.998390959 +0000
-+++ patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-03-26 11:15:45.467448953 +0000
+--- playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:28.234744486 +0000
++++ patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -768,7 +768,7 @@
      await this._updateBootstrapScript();
    }
@@ -1662,8 +1663,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts pa
    }
  
 diff -ruN playwright/packages/playwright-core/src/server/bidi/bidiPage.ts patchright/packages/playwright-core/src/server/bidi/bidiPage.ts
---- playwright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-03-26 11:15:38.988390869 +0000
-+++ patchright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:28.224744441 +0000
++++ patchright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -376,7 +376,7 @@
        this._initScriptIds.push(script);
    }
@@ -1674,8 +1675,8 @@ diff -ruN playwright/packages/playwright-core/src/server/bidi/bidiPage.ts patchr
      this._initScriptIds = [];
      await Promise.all(promises);
 diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patchright/packages/playwright-core/src/server/browserContext.ts
---- playwright/packages/playwright-core/src/server/browserContext.ts	2025-03-26 11:15:38.988390869 +0000
-+++ patchright/packages/playwright-core/src/server/browserContext.ts	2025-03-26 11:15:45.463448917 +0000
+--- playwright/packages/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:28.224744441 +0000
++++ patchright/packages/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:34.987772202 +0000
 @@ -150,7 +150,7 @@
      if (debugMode() === 'console')
        await this.extendInjectedScript(consoleApiSource.source);
@@ -1718,8 +1719,8 @@ diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patch
  
    async setRequestInterceptor(handler: network.RouteHandler | undefined): Promise<void> {
 diff -ruN playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts
---- playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -58,27 +58,16 @@
    '--disable-field-trial-config', // https://source.chromium.org/chromium/chromium/src/+/main:testing/variations/README.md
    '--disable-background-networking',
@@ -1759,8 +1760,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/chromiumSwitch
 +  '--disable-blink-features=AutomationControlled'
  ];
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crBrowser.ts patchright/packages/playwright-core/src/server/chromium/crBrowser.ts
---- playwright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -474,11 +474,6 @@
        await (page._delegate as CRPage).addInitScript(initScript);
    }
@@ -1791,8 +1792,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crBrowser.ts p
 +  }
  }
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crDevTools.ts patchright/packages/playwright-core/src/server/chromium/crDevTools.ts
---- playwright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:34.989772210 +0000
 @@ -67,7 +67,6 @@
        }).catch(e => null);
      });
@@ -1802,8 +1803,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crDevTools.ts 
        session.send('Page.enable'),
        session.send('Page.addScriptToEvaluateOnNewDocument', { source: `
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts
---- playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -1994,8 +1995,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
  
  // In certain cases, protocol will return error if the request was already canceled
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patchright/packages/playwright-core/src/server/chromium/crPage.ts
---- playwright/packages/playwright-core/src/server/chromium/crPage.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crPage.ts	2025-03-26 11:15:45.465448935 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -2300,8 +2301,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
  
  async function emulateLocale(session: CRSession, locale: string) {
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts
---- playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-26 11:15:38.989390878 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:28.225744445 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -44,8 +44,6 @@
        this.updateOffline();
        this._networkManager.addSession(session, undefined, true /* isMain */).catch(() => {});
@@ -2312,8 +2313,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crServiceWorke
      session.on('Inspector.targetReloadedAfterCrash', () => {
        // Resume service worker after restart.
 diff -ruN playwright/packages/playwright-core/src/server/clock.ts patchright/packages/playwright-core/src/server/clock.ts
---- playwright/packages/playwright-core/src/server/clock.ts	2025-03-26 11:15:38.990390887 +0000
-+++ patchright/packages/playwright-core/src/server/clock.ts	2025-03-26 11:15:45.463448917 +0000
+--- playwright/packages/playwright-core/src/server/clock.ts	2025-04-01 20:35:28.226744450 +0000
++++ patchright/packages/playwright-core/src/server/clock.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -92,6 +92,14 @@
    }
  
@@ -2330,8 +2331,8 @@ diff -ruN playwright/packages/playwright-core/src/server/clock.ts patchright/pac
    }
  }
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-26 11:15:38.991390896 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:34.990772214 +0000
 @@ -84,11 +84,15 @@
    }
  
@@ -2351,8 +2352,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/frameDispat
  
    async waitForSelector(params: channels.FrameWaitForSelectorParams, metadata: CallMetadata): Promise<channels.FrameWaitForSelectorResult> {
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-26 11:15:38.991390896 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -39,11 +39,11 @@
    }
  
@@ -2368,8 +2369,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/jsHandleDis
    }
  
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-26 11:15:38.991390896 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -353,11 +353,11 @@
    }
  
@@ -2385,8 +2386,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/pageDispatc
  }
  
 diff -ruN playwright/packages/playwright-core/src/server/firefox/ffPage.ts patchright/packages/playwright-core/src/server/firefox/ffPage.ts
---- playwright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-03-26 11:15:38.992390905 +0000
-+++ patchright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-03-26 11:15:45.466448944 +0000
+--- playwright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:28.228744459 +0000
++++ patchright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -390,7 +390,7 @@
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
@@ -2397,8 +2398,8 @@ diff -ruN playwright/packages/playwright-core/src/server/firefox/ffPage.ts patch
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
 diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/packages/playwright-core/src/server/frames.ts
---- playwright/packages/playwright-core/src/server/frames.ts	2025-03-26 11:15:38.992390905 +0000
-+++ patchright/packages/playwright-core/src/server/frames.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/packages/playwright-core/src/server/frames.ts	2025-04-01 20:35:28.228744459 +0000
++++ patchright/packages/playwright-core/src/server/frames.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -1,3 +1,7 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import { CRExecutionContext } from './chromium/crExecutionContext';
@@ -2668,15 +2669,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 -      if (!resolved)
 +      if (!resolved) {
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-         return continuePolling;
--      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
--        const elements = injected.querySelectorAll(info.parsed, document);
--        if (callId)
--          injected.markTargetElements(new Set(elements), callId);
--        const element = elements[0] as Element | undefined;
--        let log = '';
--        if (elements.length > 1) {
--          if (info.strict)
++        return continuePolling;
 +      }
 +
 +      try {
@@ -2699,7 +2692,15 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +      if (currentScopingElements.length == 0) {
 +        // TODO: Dispose?
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-+        return continuePolling;
+         return continuePolling;
+-      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
+-        const elements = injected.querySelectorAll(info.parsed, document);
+-        if (callId)
+-          injected.markTargetElements(new Set(elements), callId);
+-        const element = elements[0] as Element | undefined;
+-        let log = '';
+-        if (elements.length > 1) {
+-          if (info.strict)
 +      }
 +      const resultElement = currentScopingElements[0];
 +      if (currentScopingElements.length > 1) {
@@ -2827,6 +2828,18 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +        }, { handle, options, handles });
 +      }
 +    }, 'returnAll');
++
++    // Default Values, if no Elements found
++    var matches = false;
++    var received = 0;
++    var missingReceived = null;
++    if (promise) {
++      matches = promise.matches;
++      received = promise.received;
++      missingReceived = promise.missingReceived;
++    } else if (options.expectedNumber === 0) {
++      matches = true;
++    }
  
 -    const { log, matches, received, missingReceived } = await injected.evaluate(async (injected, { info, options, callId }) => {
 -      const elements = info ? injected.querySelectorAll(info.parsed, document) : [];
@@ -2846,18 +2859,6 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 -    if (log)
 -      progress.log(log);
 -    // Note: missingReceived avoids `unexpected value "undefined"` when element was not found.
-+    // Default Values, if no Elements found
-+    var matches = false;
-+    var received = 0;
-+    var missingReceived = null;
-+    if (promise) {
-+      matches = promise.matches;
-+      received = promise.received;
-+      missingReceived = promise.missingReceived;
-+    } else if (options.expectedNumber === 0) {
-+      matches = true;
-+    }
-+
 +    // Note: missingReceived avoids unexpected value "undefined" when element was not found.
      if (matches === options.isNot) {
        lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
@@ -2924,7 +2925,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1864,169 @@
+@@ -1757,6 +1864,170 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -2966,7 +2967,8 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +
 +      if (part.name == "xpath") {
 +        isUsingXPath = true;
-+      } else if (part.name == "nth") {
++      }
++      if (part.name == "nth") {
 +        const partNth = Number(part.body);
 +        if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
 +          return continuePolling;
@@ -3095,8 +3097,8 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
  
  class SignalBarrier {
 diff -ruN playwright/packages/playwright-core/src/server/javascript.ts patchright/packages/playwright-core/src/server/javascript.ts
---- playwright/packages/playwright-core/src/server/javascript.ts	2025-03-26 11:15:38.994390923 +0000
-+++ patchright/packages/playwright-core/src/server/javascript.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/packages/playwright-core/src/server/javascript.ts	2025-04-01 20:35:28.230744468 +0000
++++ patchright/packages/playwright-core/src/server/javascript.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -154,17 +154,33 @@
      return evaluate(this._context, false /* returnByValue */, pageFunction, this, arg);
    }
@@ -3142,8 +3144,8 @@ diff -ruN playwright/packages/playwright-core/src/server/javascript.ts patchrigh
    async getProperty(propertyName: string): Promise<JSHandle> {
      const objectHandle = await this.evaluateHandle((object: any, propertyName) => {
 diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/packages/playwright-core/src/server/page.ts
---- playwright/packages/playwright-core/src/server/page.ts	2025-03-26 11:15:38.994390923 +0000
-+++ patchright/packages/playwright-core/src/server/page.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/packages/playwright-core/src/server/page.ts	2025-04-01 20:35:28.231744473 +0000
++++ patchright/packages/playwright-core/src/server/page.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -61,7 +61,7 @@
    goForward(): Promise<boolean>;
    requestGC(): Promise<void>;
@@ -3287,8 +3289,8 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
      this.name = name;
    }
 diff -ruN playwright/packages/playwright-core/src/server/pageBinding.ts patchright/packages/playwright-core/src/server/pageBinding.ts
---- playwright/packages/playwright-core/src/server/pageBinding.ts	2025-03-26 11:15:38.994390923 +0000
-+++ patchright/packages/playwright-core/src/server/pageBinding.ts	2025-03-26 11:15:45.464448926 +0000
+--- playwright/packages/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:28.231744473 +0000
++++ patchright/packages/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:34.988772206 +0000
 @@ -26,10 +26,11 @@
    serializedArgs?: SerializedValue[],
  };
@@ -3312,8 +3314,8 @@ diff -ruN playwright/packages/playwright-core/src/server/pageBinding.ts patchrig
  
  export function takeBindingHandle(arg: { name: string, seq: number }) {
 diff -ruN playwright/packages/playwright-core/src/server/webkit/wkPage.ts patchright/packages/playwright-core/src/server/webkit/wkPage.ts
---- playwright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-03-26 11:15:38.998390959 +0000
-+++ patchright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-03-26 11:15:45.467448953 +0000
+--- playwright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:28.234744486 +0000
++++ patchright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:34.991772217 +0000
 @@ -768,7 +768,7 @@
      await this._updateBootstrapScript();
    }
@@ -3324,8 +3326,8 @@ diff -ruN playwright/packages/playwright-core/src/server/webkit/wkPage.ts patchr
    }
  
 diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/protocol/src/protocol.yml
---- playwright/packages/protocol/src/protocol.yml	2025-03-26 11:15:39.032391265 +0000
-+++ patchright/packages/protocol/src/protocol.yml	2025-03-26 11:15:45.659450665 +0000
+--- playwright/packages/protocol/src/protocol.yml	2025-04-01 20:35:28.287744729 +0000
++++ patchright/packages/protocol/src/protocol.yml	2025-04-01 20:35:35.182772934 +0000
 @@ -1,17 +1,3 @@
 -# Copyright (c) Microsoft Corporation.
 -#
@@ -3391,7 +3393,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    properties:
      n: number?
      b: boolean?
-@@ -70,26 +45,21 @@
+@@ -70,19 +45,15 @@
      v:
        type: enum?
        literals:
@@ -3413,7 +3415,37 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      u: string?
 -    # String representation of BigInt.
      bi: string?
+-    # Typed array.
+     ta:
+       type: object?
+       properties:
+@@ -90,25 +61,23 @@
+         k:
+           type: enum
+           literals:
+-          - i8
+-          - ui8
+-          - ui8c
+-          - i16
+-          - ui16
+-          - i32
+-          - ui32
+-          - f32
+-          - f64
+-          - bi64
+-          - bui64
 -    # Serialized Error object.
++            - i8
++            - ui8
++            - ui8c
++            - i16
++            - ui16
++            - i32
++            - ui32
++            - f32
++            - f64
++            - bi64
++            - bui64
      e:
        type: object?
        properties:
@@ -3424,7 +3456,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      r:
        type: object?
        properties:
-@@ -98,7 +68,6 @@
+@@ -117,7 +86,6 @@
      a:
        type: array?
        items: SerializedValue
@@ -3432,7 +3464,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      o:
        type: array?
        items:
-@@ -106,15 +75,9 @@
+@@ -125,15 +93,9 @@
          properties:
            k: string
            v: SerializedValue
@@ -3448,7 +3480,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  SerializedArgument:
    type: object
    properties:
-@@ -122,8 +85,6 @@
+@@ -141,8 +103,6 @@
      handles:
        type: array
        items: Channel
@@ -3457,7 +3489,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  ExpectedTextValue:
    type: object
    properties:
-@@ -133,8 +94,6 @@
+@@ -152,8 +112,6 @@
      matchSubstring: boolean?
      ignoreCase: boolean?
      normalizeWhiteSpace: boolean?
@@ -3466,7 +3498,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  AXNode:
    type: object
    properties:
-@@ -158,15 +117,15 @@
+@@ -177,15 +135,15 @@
      checked:
        type: enum?
        literals:
@@ -3488,7 +3520,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      level: number?
      valuemin: number?
      valuemax: number?
-@@ -177,8 +136,6 @@
+@@ -196,8 +154,6 @@
      children:
        type: array?
        items: AXNode
@@ -3497,7 +3529,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  SetNetworkCookie:
    type: object
    properties:
-@@ -193,11 +150,9 @@
+@@ -212,11 +168,9 @@
      sameSite:
        type: enum?
        literals:
@@ -3512,7 +3544,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  NetworkCookie:
    type: object
    properties:
-@@ -211,17 +166,14 @@
+@@ -230,17 +184,14 @@
      sameSite:
        type: enum
        literals:
@@ -3533,7 +3565,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  IndexedDBDatabase:
    type: object
    properties:
-@@ -259,7 +211,6 @@
+@@ -278,7 +229,6 @@
                    items: string
                  multiEntry: boolean
                  unique: boolean
@@ -3541,7 +3573,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  SetOriginStorage:
    type: object
    properties:
-@@ -270,7 +221,6 @@
+@@ -289,7 +239,6 @@
      indexedDB:
        type: array?
        items: IndexedDBDatabase
@@ -3549,7 +3581,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  OriginStorage:
    type: object
    properties:
-@@ -281,7 +231,6 @@
+@@ -300,7 +249,6 @@
      indexedDB:
        type: array?
        items: IndexedDBDatabase
@@ -3557,7 +3589,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  SerializedError:
    type: object
    properties:
-@@ -292,8 +241,6 @@
+@@ -311,8 +259,6 @@
          name: string
          stack: string?
      value: SerializedValue?
@@ -3566,7 +3598,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  RecordHarOptions:
    type: object
    properties:
-@@ -301,19 +248,17 @@
+@@ -320,19 +266,17 @@
      content:
        type: enum?
        literals:
@@ -3591,7 +3623,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  FormField:
    type: object
    properties:
-@@ -325,15 +270,11 @@
+@@ -344,15 +288,11 @@
          name: string
          mimeType: string?
          buffer: binary
@@ -3607,7 +3639,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      fetch:
        parameters:
          url: string
-@@ -360,13 +301,11 @@
+@@ -379,13 +319,11 @@
          maxRetries: number?
        returns:
          response: APIResponse
@@ -3621,7 +3653,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      fetchLog:
        parameters:
          fetchUid: string
-@@ -374,7 +313,6 @@
+@@ -393,7 +331,6 @@
          log:
            type: array
            items: string
@@ -3629,7 +3661,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      storageState:
        parameters:
          indexedDB: boolean?
-@@ -385,16 +323,12 @@
+@@ -404,16 +341,12 @@
          origins:
            type: array
            items: OriginStorage
@@ -3646,7 +3678,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  APIResponse:
    type: object
    properties:
-@@ -405,16 +339,13 @@
+@@ -424,16 +357,13 @@
      headers:
        type: array
        items: NameValue
@@ -3667,7 +3699,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  CommonScreenshotOptions:
    type: mixin
    properties:
-@@ -422,18 +353,18 @@
+@@ -441,18 +371,18 @@
      caret:
        type: enum?
        literals:
@@ -3692,7 +3724,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      mask:
        type: array?
        items:
-@@ -443,7 +374,6 @@
+@@ -462,7 +392,6 @@
            selector: string
      maskColor: string?
      style: string?
@@ -3700,7 +3732,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  LaunchOptions:
    type: mixin
    properties:
-@@ -476,8 +406,6 @@
+@@ -495,8 +424,6 @@
      tracesDir: string?
      chromiumSandbox: boolean?
      firefoxUserPrefs: json?
@@ -3709,7 +3741,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  ContextOptions:
    type: mixin
    properties:
-@@ -530,42 +458,42 @@
+@@ -549,42 +476,42 @@
          send:
            type: enum?
            literals:
@@ -3770,7 +3802,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      baseURL: string?
      recordVideo:
        type: object?
-@@ -581,12 +509,10 @@
+@@ -600,12 +527,10 @@
      serviceWorkers:
        type: enum?
        literals:
@@ -3785,7 +3817,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      deviceDescriptors:
        type: array
-@@ -614,12 +540,10 @@
+@@ -633,12 +558,10 @@
                defaultBrowserType:
                  type: enum
                  literals:
@@ -3801,7 +3833,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      zip:
        parameters:
          zipFile: string
-@@ -633,14 +557,12 @@
+@@ -652,14 +575,12 @@
              - write
              - append
          includeSources: boolean
@@ -3816,7 +3848,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      harLookup:
        parameters:
          harId: string
-@@ -655,10 +577,10 @@
+@@ -674,10 +595,10 @@
          action:
            type: enum
            literals:
@@ -3831,7 +3863,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          message: string?
          redirectURL: string?
          status: number?
-@@ -666,16 +588,13 @@
+@@ -685,16 +606,13 @@
            type: array?
            items: NameValue
          body: binary?
@@ -3848,7 +3880,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      connect:
        parameters:
          wsEndpoint: string
-@@ -689,22 +608,18 @@
+@@ -715,22 +633,18 @@
          headers:
            type: array
            items: NameValue
@@ -3871,7 +3903,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      globToRegex:
        parameters:
          glob: string
-@@ -712,27 +627,22 @@
+@@ -738,27 +652,22 @@
          webSocketUrl: boolean?
        returns:
          regex: string
@@ -3903,7 +3935,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      chromium: BrowserType
      firefox: BrowserType
-@@ -743,13 +653,9 @@
+@@ -769,13 +678,9 @@
      electron: Electron
      utils: LocalUtils?
      selectors: Selectors
@@ -3917,7 +3949,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    commands:
      newRequest:
        parameters:
-@@ -780,8 +686,8 @@
+@@ -806,8 +711,8 @@
              send:
                type: enum?
                literals:
@@ -3928,7 +3960,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          proxy:
            type: object?
            properties:
-@@ -800,10 +706,8 @@
+@@ -826,10 +731,8 @@
                type: array?
                items: SetOriginStorage
          tracesDir: string?
@@ -3939,7 +3971,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  RecorderSource:
    type: object
    properties:
-@@ -821,10 +725,8 @@
+@@ -847,10 +750,8 @@
            type: string
      revealLine: number?
      group: string?
@@ -3950,7 +3982,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    commands:
      initialize:
        parameters:
-@@ -832,21 +734,17 @@
+@@ -858,21 +759,17 @@
          sdkLanguage:
            type: enum
            literals:
@@ -3977,7 +4009,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setRecorderMode:
        parameters:
          mode:
-@@ -856,35 +754,26 @@
+@@ -882,35 +779,26 @@
              - recording
              - none
          testIdAttributeName: string?
@@ -4017,7 +4049,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      sourceChanged:
        parameters:
          text: string
-@@ -893,87 +782,68 @@
+@@ -919,87 +807,68 @@
          actions:
            type: array?
            items: string
@@ -4105,7 +4137,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      launchPersistentContext:
        parameters:
          $mixin1: LaunchOptions
-@@ -982,7 +852,6 @@
+@@ -1008,7 +877,6 @@
          slowMo: number?
        returns:
          context: BrowserContext
@@ -4113,7 +4145,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      connectOverCDP:
        parameters:
          endpointURL: string
-@@ -994,26 +863,19 @@
+@@ -1027,26 +895,19 @@
        returns:
          browser: Browser
          defaultContext: BrowserContext?
@@ -4141,7 +4173,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      newContext:
        parameters:
          $mixin: ContextOptions
-@@ -1035,7 +897,6 @@
+@@ -1068,7 +929,6 @@
                items: SetOriginStorage
        returns:
          context: BrowserContext
@@ -4149,7 +4181,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      newContextForReuse:
        parameters:
          $mixin: ContextOptions
-@@ -1057,15 +918,12 @@
+@@ -1090,15 +950,12 @@
                items: SetOriginStorage
        returns:
          context: BrowserContext
@@ -4165,7 +4197,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      startTracing:
        parameters:
          page: Page?
-@@ -1073,16 +931,11 @@
+@@ -1106,16 +963,11 @@
          categories:
            type: array?
            items: string
@@ -4183,7 +4215,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  ConsoleMessage:
    type: mixin
    properties:
-@@ -1097,11 +950,8 @@
+@@ -1130,11 +982,8 @@
          url: string
          lineNumber: number
          columnNumber: number
@@ -4195,7 +4227,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    commands:
      waitForEventInfo:
        parameters:
-@@ -1112,37 +962,30 @@
+@@ -1145,37 +994,30 @@
              phase:
                type: enum
                literals:
@@ -4236,7 +4268,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      clearCookies:
        parameters:
          name: string?
-@@ -1154,13 +997,10 @@
+@@ -1187,13 +1029,10 @@
          path: string?
          pathRegexSource: string?
          pathRegexFlags: string?
@@ -4251,7 +4283,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      cookies:
        parameters:
          urls:
-@@ -1170,37 +1010,30 @@
+@@ -1203,37 +1042,30 @@
          cookies:
            type: array
            items: NetworkCookie
@@ -4289,7 +4321,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setGeolocation:
        parameters:
          geolocation:
-@@ -1209,7 +1042,6 @@
+@@ -1242,7 +1074,6 @@
              longitude: number
              latitude: number
              accuracy: number?
@@ -4297,7 +4329,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setHTTPCredentials:
        parameters:
          httpCredentials:
-@@ -1218,7 +1050,6 @@
+@@ -1251,7 +1082,6 @@
              username: string
              password: string
              origin: string?
@@ -4305,7 +4337,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setNetworkInterceptionPatterns:
        parameters:
          patterns:
-@@ -1229,7 +1060,6 @@
+@@ -1262,7 +1092,6 @@
                glob: string?
                regexSource: string?
                regexFlags: string?
@@ -4313,7 +4345,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setWebSocketInterceptionPatterns:
        parameters:
          patterns:
-@@ -1240,11 +1070,9 @@
+@@ -1273,11 +1102,9 @@
                glob: string?
                regexSource: string?
                regexFlags: string?
@@ -4325,7 +4357,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      storageState:
        parameters:
          indexedDB: boolean?
-@@ -1255,19 +1083,17 @@
+@@ -1288,19 +1115,17 @@
          origins:
            type: array
            items: OriginStorage
@@ -4349,7 +4381,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          pauseOnNextStatement: boolean?
          testIdAttributeName: string?
          launchOptions: json?
-@@ -1277,27 +1103,23 @@
+@@ -1310,27 +1135,23 @@
          outputFile: string?
          handleSIGINT: boolean?
          omitCallTracking: boolean?
@@ -4377,7 +4409,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      createTempFiles:
        parameters:
          rootDirName: string?
-@@ -1313,127 +1135,100 @@
+@@ -1346,127 +1167,100 @@
          writableStreams:
            type: array
            items: WritableStream
@@ -4513,7 +4545,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      mainFrame: Frame
      viewportSize:
-@@ -1443,67 +1238,59 @@
+@@ -1476,67 +1270,59 @@
          height: number
      isClosed: boolean
      opener: Page?
@@ -4597,7 +4629,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      goBack:
        parameters:
          timeout: number?
-@@ -1513,7 +1300,6 @@
+@@ -1546,7 +1332,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4605,7 +4637,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      goForward:
        parameters:
          timeout: number?
-@@ -1523,25 +1309,20 @@
+@@ -1556,25 +1341,20 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4632,7 +4664,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      reload:
        parameters:
          timeout: number?
-@@ -1551,7 +1332,6 @@
+@@ -1584,7 +1364,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4640,7 +4672,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      expectScreenshot:
        parameters:
          expected: binary?
-@@ -1580,15 +1360,14 @@
+@@ -1613,15 +1392,14 @@
            items: string
        flags:
          snapshot: true
@@ -4658,7 +4690,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          quality: number?
          fullPage: boolean?
          clip: Rect?
-@@ -1597,13 +1376,11 @@
+@@ -1630,13 +1408,11 @@
          binary: binary
        flags:
          snapshot: true
@@ -4672,7 +4704,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setNetworkInterceptionPatterns:
        parameters:
          patterns:
-@@ -1614,7 +1391,6 @@
+@@ -1647,7 +1423,6 @@
                glob: string?
                regexSource: string?
                regexFlags: string?
@@ -4680,7 +4712,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setWebSocketInterceptionPatterns:
        parameters:
          patterns:
-@@ -1625,7 +1401,6 @@
+@@ -1658,7 +1433,6 @@
                glob: string?
                regexSource: string?
                regexFlags: string?
@@ -4688,7 +4720,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setViewportSize:
        parameters:
          viewportSize:
-@@ -1635,28 +1410,24 @@
+@@ -1668,28 +1442,24 @@
              height: number
        flags:
          snapshot: true
@@ -4717,7 +4749,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      keyboardType:
        parameters:
          text: string
-@@ -1664,7 +1435,6 @@
+@@ -1697,7 +1467,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4725,7 +4757,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      keyboardPress:
        parameters:
          key: string
-@@ -1672,7 +1442,6 @@
+@@ -1705,7 +1474,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4733,7 +4765,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      mouseMove:
        parameters:
          x: number
-@@ -1681,33 +1450,30 @@
+@@ -1714,33 +1482,30 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4773,7 +4805,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      mouseClick:
        parameters:
          x: number
-@@ -1716,14 +1482,13 @@
+@@ -1749,14 +1514,13 @@
          button:
            type: enum?
            literals:
@@ -4791,7 +4823,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      mouseWheel:
        parameters:
          deltaX: number
-@@ -1731,7 +1496,6 @@
+@@ -1764,7 +1528,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4799,7 +4831,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      touchscreenTap:
        parameters:
          x: number
-@@ -1739,7 +1503,6 @@
+@@ -1772,7 +1535,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4807,7 +4839,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      accessibilitySnapshot:
        parameters:
          interestingOnly: boolean?
-@@ -1748,7 +1511,6 @@
+@@ -1781,7 +1543,6 @@
          rootAXNode: AXNode?
        flags:
          snapshot: true
@@ -4815,7 +4847,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      pdf:
        parameters:
          scale: number?
-@@ -1773,12 +1535,10 @@
+@@ -1806,12 +1567,10 @@
          outline: boolean?
        returns:
          pdf: binary
@@ -4828,7 +4860,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      stopJSCoverage:
        returns:
          entries:
-@@ -1804,11 +1564,9 @@
+@@ -1837,11 +1596,9 @@
                            startOffset: number
                            endOffset: number
                            count: number
@@ -4840,7 +4872,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      stopCSSCoverage:
        returns:
          entries:
-@@ -1825,81 +1583,61 @@
+@@ -1858,81 +1615,61 @@
                    properties:
                      start: number
                      end: number
@@ -4932,7 +4964,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      url: string
      name: string
-@@ -1907,9 +1645,7 @@
+@@ -1940,9 +1677,7 @@
      loadStates:
        type: array
        items: LifecycleEvent
@@ -4942,7 +4974,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      evalOnSelector:
        parameters:
          selector: string
-@@ -1921,7 +1657,6 @@
+@@ -1954,7 +1689,6 @@
          value: SerializedValue
        flags:
          snapshot: true
@@ -4950,7 +4982,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      evalOnSelectorAll:
        parameters:
          selector: string
-@@ -1932,7 +1667,6 @@
+@@ -1965,7 +1699,6 @@
          value: SerializedValue
        flags:
          snapshot: true
@@ -4958,7 +4990,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      addScriptTag:
        parameters:
          url: string?
-@@ -1942,7 +1676,6 @@
+@@ -1975,7 +1708,6 @@
          element: ElementHandle
        flags:
          snapshot: true
@@ -4966,7 +4998,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      addStyleTag:
        parameters:
          url: string?
-@@ -1951,7 +1684,6 @@
+@@ -1984,7 +1716,6 @@
          element: ElementHandle
        flags:
          snapshot: true
@@ -4974,7 +5006,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      ariaSnapshot:
        parameters:
          selector: string
-@@ -1959,14 +1691,13 @@
+@@ -1992,14 +1723,13 @@
          mode:
            type: enum?
            literals:
@@ -4991,7 +5023,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      blur:
        parameters:
          selector: string
-@@ -1975,7 +1706,6 @@
+@@ -2008,7 +1738,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -4999,7 +5031,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      check:
        parameters:
          selector: string
-@@ -1988,7 +1718,6 @@
+@@ -2021,7 +1750,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5007,7 +5039,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      click:
        parameters:
          selector: string
-@@ -2000,19 +1729,19 @@
+@@ -2033,19 +1761,19 @@
            items:
              type: enum
              literals:
@@ -5035,7 +5067,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          clickCount: number?
          timeout: number?
          trial: boolean?
-@@ -2020,13 +1749,11 @@
+@@ -2053,13 +1781,11 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5049,7 +5081,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      dragAndDrop:
        parameters:
          source: string
-@@ -2041,7 +1768,6 @@
+@@ -2074,7 +1800,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5057,7 +5089,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      dblclick:
        parameters:
          selector: string
-@@ -2052,26 +1778,25 @@
+@@ -2085,26 +1810,25 @@
            items:
              type: enum
              literals:
@@ -5092,7 +5124,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      dispatchEvent:
        parameters:
          selector: string
-@@ -2082,27 +1807,26 @@
+@@ -2115,27 +1839,26 @@
        flags:
          slowMo: true
          snapshot: true
@@ -5122,7 +5154,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      fill:
        parameters:
          selector: string
-@@ -2114,7 +1838,6 @@
+@@ -2147,7 +1870,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5130,7 +5162,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      focus:
        parameters:
          selector: string
-@@ -2123,15 +1846,12 @@
+@@ -2156,15 +1878,12 @@
        flags:
          slowMo: true
          snapshot: true
@@ -5146,7 +5178,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      getAttribute:
        parameters:
          selector: string
-@@ -2142,7 +1862,6 @@
+@@ -2175,7 +1894,6 @@
          value: string?
        flags:
          snapshot: true
@@ -5154,7 +5186,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      goto:
        parameters:
          url: string
-@@ -2154,7 +1873,6 @@
+@@ -2187,7 +1905,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -5162,7 +5194,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      hover:
        parameters:
          selector: string
-@@ -2165,11 +1883,11 @@
+@@ -2198,11 +1915,11 @@
            items:
              type: enum
              literals:
@@ -5179,7 +5211,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          position: Point?
          timeout: number?
          trial: boolean?
-@@ -2177,7 +1895,6 @@
+@@ -2210,7 +1927,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5187,7 +5219,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      innerHTML:
        parameters:
          selector: string
-@@ -2187,7 +1904,6 @@
+@@ -2220,7 +1936,6 @@
          value: string
        flags:
          snapshot: true
@@ -5195,7 +5227,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      innerText:
        parameters:
          selector: string
-@@ -2197,7 +1913,6 @@
+@@ -2230,7 +1945,6 @@
          value: string
        flags:
          snapshot: true
@@ -5203,7 +5235,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      inputValue:
        parameters:
          selector: string
-@@ -2207,7 +1922,6 @@
+@@ -2240,7 +1954,6 @@
          value: string
        flags:
          snapshot: true
@@ -5211,7 +5243,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      isChecked:
        parameters:
          selector: string
-@@ -2217,7 +1931,6 @@
+@@ -2250,7 +1963,6 @@
          value: boolean
        flags:
          snapshot: true
@@ -5219,7 +5251,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      isDisabled:
        parameters:
          selector: string
-@@ -2227,7 +1940,6 @@
+@@ -2260,7 +1972,6 @@
          value: boolean
        flags:
          snapshot: true
@@ -5227,7 +5259,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      isEnabled:
        parameters:
          selector: string
-@@ -2237,7 +1949,6 @@
+@@ -2270,7 +1981,6 @@
          value: boolean
        flags:
          snapshot: true
@@ -5235,7 +5267,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      isHidden:
        parameters:
          selector: string
-@@ -2246,7 +1957,6 @@
+@@ -2279,7 +1989,6 @@
          value: boolean
        flags:
          snapshot: true
@@ -5243,7 +5275,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      isVisible:
        parameters:
          selector: string
-@@ -2255,7 +1965,6 @@
+@@ -2288,7 +1997,6 @@
          value: boolean
        flags:
          snapshot: true
@@ -5251,7 +5283,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      isEditable:
        parameters:
          selector: string
-@@ -2265,7 +1974,6 @@
+@@ -2298,7 +2006,6 @@
          value: boolean
        flags:
          snapshot: true
@@ -5259,7 +5291,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      press:
        parameters:
          selector: string
-@@ -2278,7 +1986,6 @@
+@@ -2311,7 +2018,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5267,7 +5299,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      querySelector:
        parameters:
          selector: string
-@@ -2287,7 +1994,6 @@
+@@ -2320,7 +2026,6 @@
          element: ElementHandle?
        flags:
          snapshot: true
@@ -5275,7 +5307,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      querySelectorAll:
        parameters:
          selector: string
-@@ -2297,7 +2003,6 @@
+@@ -2330,7 +2035,6 @@
            items: ElementHandle
        flags:
          snapshot: true
@@ -5283,7 +5315,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      queryCount:
        parameters:
          selector: string
-@@ -2305,7 +2010,6 @@
+@@ -2338,7 +2042,6 @@
          value: number
        flags:
          snapshot: true
@@ -5291,7 +5323,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      selectOption:
        parameters:
          selector: string
-@@ -2332,7 +2036,6 @@
+@@ -2365,7 +2068,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5299,7 +5331,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      setContent:
        parameters:
          html: string
-@@ -2340,12 +2043,10 @@
+@@ -2373,12 +2075,10 @@
          waitUntil: LifecycleEvent?
        flags:
          snapshot: true
@@ -5312,7 +5344,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          payloads:
            type: array?
            items:
-@@ -2367,7 +2068,6 @@
+@@ -2400,7 +2100,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5320,7 +5352,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      tap:
        parameters:
          selector: string
-@@ -2378,11 +2078,11 @@
+@@ -2411,11 +2110,11 @@
            items:
              type: enum
              literals:
@@ -5337,7 +5369,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          position: Point?
          timeout: number?
          trial: boolean?
-@@ -2390,7 +2090,6 @@
+@@ -2423,7 +2122,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5345,7 +5377,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      textContent:
        parameters:
          selector: string
-@@ -2400,11 +2099,9 @@
+@@ -2433,11 +2131,9 @@
          value: string?
        flags:
          snapshot: true
@@ -5357,7 +5389,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      type:
        parameters:
          selector: string
-@@ -2416,7 +2113,6 @@
+@@ -2449,7 +2145,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5365,7 +5397,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      uncheck:
        parameters:
          selector: string
-@@ -2429,26 +2125,22 @@
+@@ -2462,26 +2157,22 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5392,7 +5424,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      waitForSelector:
        parameters:
          selector: string
-@@ -2457,16 +2149,15 @@
+@@ -2490,16 +2181,15 @@
          state:
            type: enum?
            literals:
@@ -5413,7 +5445,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      expect:
        parameters:
          selector: string
-@@ -2489,14 +2180,11 @@
+@@ -2522,14 +2212,11 @@
            items: string
        flags:
          snapshot: true
@@ -5428,7 +5460,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      navigated:
        parameters:
          url: string
-@@ -2506,68 +2194,55 @@
+@@ -2539,68 +2226,55 @@
            properties:
              request: Request?
          error: string?
@@ -5503,7 +5535,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      getPropertyList:
        returns:
          properties:
-@@ -2577,32 +2252,22 @@
+@@ -2610,32 +2284,22 @@
              properties:
                name: string
                value: JSHandle
@@ -5536,7 +5568,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      evalOnSelector:
        parameters:
          selector: string
-@@ -2614,7 +2279,6 @@
+@@ -2647,7 +2311,6 @@
          value: SerializedValue
        flags:
          snapshot: true
@@ -5544,7 +5576,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      evalOnSelectorAll:
        parameters:
          selector: string
-@@ -2625,13 +2289,11 @@
+@@ -2658,13 +2321,11 @@
          value: SerializedValue
        flags:
          snapshot: true
@@ -5558,7 +5590,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      check:
        parameters:
          force: boolean?
-@@ -2642,7 +2304,6 @@
+@@ -2675,7 +2336,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5566,7 +5598,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      click:
        parameters:
          force: boolean?
-@@ -2652,19 +2313,19 @@
+@@ -2685,19 +2345,19 @@
            items:
              type: enum
              literals:
@@ -5594,7 +5626,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          clickCount: number?
          timeout: number?
          trial: boolean?
-@@ -2672,13 +2333,11 @@
+@@ -2705,13 +2365,11 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5608,7 +5640,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      dblclick:
        parameters:
          force: boolean?
-@@ -2687,26 +2346,25 @@
+@@ -2720,26 +2378,25 @@
            items:
              type: enum
              literals:
@@ -5643,7 +5675,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      dispatchEvent:
        parameters:
          type: string
-@@ -2714,7 +2372,6 @@
+@@ -2747,7 +2404,6 @@
        flags:
          slowMo: true
          snapshot: true
@@ -5651,7 +5683,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      fill:
        parameters:
          value: string
-@@ -2724,22 +2381,18 @@
+@@ -2757,22 +2413,18 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5674,7 +5706,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      hover:
        parameters:
          force: boolean?
-@@ -2748,11 +2401,11 @@
+@@ -2781,11 +2433,11 @@
            items:
              type: enum
              literals:
@@ -5691,7 +5723,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          position: Point?
          timeout: number?
          trial: boolean?
-@@ -2760,65 +2413,54 @@
+@@ -2793,65 +2445,54 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5757,7 +5789,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      press:
        parameters:
          key: string
-@@ -2829,7 +2471,6 @@
+@@ -2862,7 +2503,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5765,7 +5797,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      querySelector:
        parameters:
          selector: string
-@@ -2838,7 +2479,6 @@
+@@ -2871,7 +2511,6 @@
          element: ElementHandle?
        flags:
          snapshot: true
@@ -5773,7 +5805,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      querySelectorAll:
        parameters:
          selector: string
-@@ -2848,29 +2488,26 @@
+@@ -2881,29 +2520,26 @@
            items: ElementHandle
        flags:
          snapshot: true
@@ -5805,7 +5837,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      selectOption:
        parameters:
          elements:
-@@ -2895,7 +2532,6 @@
+@@ -2928,7 +2564,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5813,7 +5845,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      selectText:
        parameters:
          force: boolean?
-@@ -2903,10 +2539,8 @@
+@@ -2936,10 +2571,8 @@
        flags:
          slowMo: true
          snapshot: true
@@ -5824,7 +5856,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          payloads:
            type: array?
            items:
-@@ -2928,7 +2562,6 @@
+@@ -2961,7 +2594,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5832,7 +5864,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      tap:
        parameters:
          force: boolean?
-@@ -2937,11 +2570,11 @@
+@@ -2970,11 +2602,11 @@
            items:
              type: enum
              literals:
@@ -5849,7 +5881,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          position: Point?
          timeout: number?
          trial: boolean?
-@@ -2949,13 +2582,11 @@
+@@ -2982,13 +2614,11 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5863,7 +5895,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      type:
        parameters:
          text: string
-@@ -2965,7 +2596,6 @@
+@@ -2998,7 +2628,6 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5871,7 +5903,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      uncheck:
        parameters:
          force: boolean?
-@@ -2976,22 +2606,20 @@
+@@ -3009,22 +2638,20 @@
          slowMo: true
          snapshot: true
          pausesBeforeInput: true
@@ -5900,7 +5932,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      waitForSelector:
        parameters:
          selector: string
-@@ -3000,19 +2628,16 @@
+@@ -3033,19 +2660,16 @@
          state:
            type: enum?
            literals:
@@ -5924,7 +5956,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      frame: Frame?
      serviceWorker: Worker?
-@@ -3025,36 +2650,26 @@
+@@ -3058,36 +2682,26 @@
        items: NameValue
      isNavigationRequest: boolean
      redirectedFrom: Request?
@@ -5961,7 +5993,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      continue:
        parameters:
          url: string?
-@@ -3064,10 +2679,8 @@
+@@ -3097,10 +2711,8 @@
            items: NameValue
          postData: binary?
          isFallback: boolean
@@ -5972,7 +6004,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          status: number?
          headers:
            type: array?
-@@ -3075,67 +2688,50 @@
+@@ -3108,67 +2720,50 @@
          body: string?
          isBase64: boolean?
          fetchResponseUid: string?
@@ -6042,7 +6074,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  ResourceTiming:
    type: object
    properties:
-@@ -3147,10 +2743,8 @@
+@@ -3180,10 +2775,8 @@
      connectEnd: number
      requestStart: number
      responseStart: number
@@ -6053,7 +6085,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      request: Request
      url: string
-@@ -3161,33 +2755,24 @@
+@@ -3194,33 +2787,24 @@
        items: NameValue
      timing: ResourceTiming
      fromServiceWorker: boolean
@@ -6087,7 +6119,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  SecurityDetails:
    type: object
    properties:
-@@ -3196,7 +2781,6 @@
+@@ -3229,7 +2813,6 @@
      subjectName: string?
      validFrom: number?
      validTo: number?
@@ -6095,7 +6127,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  RequestSizes:
    type: object
    properties:
-@@ -3204,46 +2788,32 @@
+@@ -3237,46 +2820,32 @@
      requestHeadersSize: number
      responseBodySize: number
      responseHeadersSize: number
@@ -6144,7 +6176,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    initializer:
      frame: Frame
      name: string
-@@ -3251,56 +2821,40 @@
+@@ -3284,56 +2853,40 @@
        type: array?
        items: SerializedValue
      handle: JSHandle?
@@ -6202,7 +6234,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      tracingGroup:
        parameters:
          name: string
-@@ -3310,117 +2864,77 @@
+@@ -3343,117 +2896,77 @@
              file: string
              line: number?
              column: number?
@@ -6330,7 +6362,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      launch:
        parameters:
          executablePath: string?
-@@ -3435,17 +2949,17 @@
+@@ -3468,17 +2981,17 @@
          acceptDownloads:
            type: enum?
            literals:
@@ -6355,7 +6387,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
          extraHTTPHeaders:
            type: array?
            items: NameValue
-@@ -3477,27 +2991,19 @@
+@@ -3510,27 +3023,19 @@
          strictSelectors: boolean?
          timezoneId: string?
          tracesDir: string?
@@ -6383,7 +6415,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      evaluateExpression:
        parameters:
          expression: string
-@@ -3505,7 +3011,6 @@
+@@ -3538,7 +3043,6 @@
          arg: SerializedArgument
        returns:
          value: SerializedValue
@@ -6391,7 +6423,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      evaluateExpressionHandle:
        parameters:
          expression: string
-@@ -3513,26 +3018,21 @@
+@@ -3546,26 +3050,21 @@
          arg: SerializedArgument
        returns:
          handle: JSHandle
@@ -6420,7 +6452,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      devices:
        parameters:
          host: string?
-@@ -3542,36 +3042,27 @@
+@@ -3575,36 +3074,27 @@
          devices:
            type: array
            items: AndroidDevice
@@ -6459,7 +6491,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
    commands:
      wait:
        parameters:
-@@ -3579,123 +3070,106 @@
+@@ -3612,123 +3102,106 @@
          state:
            type: enum?
            literals:
@@ -6596,7 +6628,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
      launchBrowser:
        parameters:
          $mixin: ContextOptions
-@@ -3710,67 +3184,52 @@
+@@ -3743,67 +3216,52 @@
              bypass: string?
              username: string?
              password: string?
@@ -6666,7 +6698,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  AndroidSelector:
    type: object
    properties:
-@@ -3798,8 +3257,6 @@
+@@ -3831,8 +3289,6 @@
      scrollable: boolean?
      selected: boolean?
      text: string?
@@ -6675,7 +6707,7 @@ diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/prot
  AndroidElementInfo:
    type: object
    properties:
-@@ -3821,24 +3278,17 @@
+@@ -3854,24 +3310,17 @@
      longClickable: boolean
      scrollable: boolean
      selected: boolean
