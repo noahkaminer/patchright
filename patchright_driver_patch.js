@@ -1694,47 +1694,6 @@ if (initScriptConstructorAssignment) {
     `this.source = \`(() => { \${source} })();\`;`,
   );
 }
-// ------- addPageBinding Function -------
-const addPageBindingFunction = pageSourceFile.getFunction("addPageBinding");
-const parameters = addPageBindingFunction.getParameters();
-parameters.forEach((param) => {
-  if (param.getName() === "playwrightBinding") {
-    param.remove();
-  }
-});
-addPageBindingFunction.getStatements().forEach((statement) => {
-  if (statement.getText().includes("(globalThis as any)[playwrightBinding]")) {
-    // Replace the line with the new code.
-    statement.replaceWithText(
-      `const binding = (globalThis as any)[bindingName];
-if (binding && binding.toString().startsWith("(...args) => {")) return`,
-    );
-  }
-});
-
-const statements = addPageBindingFunction.getBodyOrThrow().getStatements();
-for (const statement of statements) {
-  if (statement.getKind() === SyntaxKind.IfStatement) {
-    const ifStatement = statement.asKindOrThrow(SyntaxKind.IfStatement);
-    // Check if the if-statement is the one we're looking for
-    const expressionText = ifStatement.getExpression().getText();
-    if (expressionText === "binding.__installed") {
-      ifStatement.remove();
-    }
-  }
-  // Remove the assignment: (globalThis as any)[bindingName].__installed = true;
-  if (statement.getKind() === SyntaxKind.ExpressionStatement) {
-    const expressionStatement = statement.asKindOrThrow(
-      SyntaxKind.ExpressionStatement,
-    );
-    const expressionText = expressionStatement.getExpression().getText();
-    if (
-      expressionText === "(globalThis as any)[bindingName].__installed = true"
-    ) {
-      expressionStatement.remove();
-    }
-  }
-}
 
 // ------- Worker Class -------
 const workerClass = pageSourceFile.getClass("Worker");
@@ -1788,7 +1747,7 @@ workerEvaluateExpressionHandleMethodBody.insertStatements(
 // ----------------------------
 // server/pageBinding.ts
 // ----------------------------
-/*const pageBindingSourceFile = project.addSourceFileAtPath(
+const pageBindingSourceFile = project.addSourceFileAtPath(
   "packages/playwright-core/src/server/pageBinding.ts",
 );
 
@@ -1832,7 +1791,7 @@ for (const statement of statements) {
       expressionStatement.remove();
     }
   }
-}*/
+}
 
 // ----------------------------
 // server/clock.ts
@@ -2019,7 +1978,7 @@ if (workerDispatcherEvaluateExpressionHandleCall && workerDispatcherEvaluateExpr
 // injected/src/xpathSelectorEngine.ts
 // ----------------------------
 const xpathSelectorEngineSourceFile = project.addSourceFileAtPath(
-  "packages/playwright-core/src/server/injected/xpathSelectorEngine.ts",
+  "packages/injected/src/xpathSelectorEngine.ts",
 );
 // ------- XPathEngine Class -------
 const xPathEngineLiteral = xpathSelectorEngineSourceFile.getVariableDeclarationOrThrow("XPathEngine").getInitializerIfKindOrThrow(SyntaxKind.ObjectLiteralExpression);
