@@ -62,10 +62,8 @@ Patchright patches some general leaks in the Playwright codebase. This mainly in
 
 ### Closed Shadow Roots
 Patchright is able to interact with elements in Closed Shadow Roots. Just use normal locators and Patchright will do the rest.
-
-> [!WARNING]  
-> **XPath** locators are **not supported** in Closed Shadow Roots (CSR). This isnt a limitation of Patchright, but of Chromium itself.
-> Furthermore, some functionalities like Element Counts **might be off** because **Evaluation of CSR-Locators** happens in an **Isolated World**.
+<br/>
+Patchright is now also able to use XPaths in Closed Shadow Roots.
 
 ---
 
@@ -92,11 +90,6 @@ Patchright passes:
 
 ## Bugs
 #### Even though we have spent a lot of time to make Patchright as stable as possible, bugs may still occur. If you encounter any bugs, please report them in the [Issues](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/issues).
-
-> [!WARNING]  
-> Currently, Patchright may experience some unintended behavior when evaluating JavaScript in the browser.
-> This will be fixed when the Option to choose Execution Context (Main/Isolated) is implemented.
-> See the [TODO](#todo) for more information.
 
 > [!WARNING]  
 > Patchright passes most, but not all the Playwright tests. Some bugs are considered impossible to solve, some are just not relevant. See the list of bugs and their explanation [here](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/issues/30).

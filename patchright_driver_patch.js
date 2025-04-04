@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { Project, SyntaxKind, IndentationText } from "ts-morph";
+import { Project, SyntaxKind, IndentationText, ObjectLiteralExpression } from "ts-morph";
 import YAML from "yaml";
 
 const project = new Project({
@@ -278,8 +278,8 @@ updateProtocolRequestInterceptionForSessionMethod.getStatements().forEach((state
 });
 
 // -- _handleRequestRedirect Method --
-const handleRequestRedirectMethod = crNetworkManagerClass.getMethod("_handleRequestRedirect");
-handleRequestRedirectMethod.setBodyText('return;')
+//const handleRequestRedirectMethod = crNetworkManagerClass.getMethod("_handleRequestRedirect");
+//handleRequestRedirectMethod.setBodyText('return;')
 
 // -- _onRequest Method --
 const crOnRequestMethod = crNetworkManagerClass.getMethod("_onRequest");
@@ -413,9 +413,9 @@ const networkRequestInterceptedMethod = routeImplClass.getMethod(
   "_networkRequestIntercepted",
 );
 networkRequestInterceptedMethod.setBodyText(`if (event.resourceType !== 'Document') {
-  await catchDisallowedErrors(async () => {
+  /*await catchDisallowedErrors(async () => {
     await this._session.send('Fetch.continueRequest', { requestId: event.requestId });
-  });
+  });*/
   return;
 }
 if (this._networkId != event.networkId || !this._sessionManager._alreadyTrackedNetworkIds.has(event.networkId)) return;
@@ -887,6 +887,24 @@ isVisibleInternalMethod.setBodyText(`try {
   if (js.isJavaScriptErrorInEvaluate(e) || isInvalidSelectorError(e) || isSessionClosedError(e)) throw e;
   return false;
 }`)
+
+// -- queryCount Method --
+const queryCountlMethod = frameClass.getMethod("queryCount");
+queryCountlMethod.setBodyText(`const custom_metadata = {
+  "internal": false,
+  "log": []
+};
+const controller = new _progress.ProgressController(custom_metadata, this);
+return await controller.run(async progress => {
+  progress.log("waiting for " + this._asLocator(selector));
+  const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
+    const handle = result[0];
+    const handles = result[1];
+    return handle ? handles.length : 0;
+  }, 'returnAll');
+  return promise;
+}, 100); // A bit geeky but its okay :D
+`);
 
 // -- _expectInternal Method --
 const expectInternalMethod = frameClass.getMethod("_expectInternal");
@@ -1955,6 +1973,57 @@ if (workerDispatcherEvaluateExpressionHandleCall && workerDispatcherEvaluateExpr
       // Add the new argument to the function call
       workerDispatcherEvaluateExpressionHandleCall.addArgument("params.isolatedContext");
 }
+
+// ----------------------------
+// server/injected/xpathSelectorEngine.ts
+// ----------------------------
+const xpathSelectorEngineSourceFile = project.addSourceFileAtPath(
+  "packages/playwright-core/src/server/injected/xpathSelectorEngine.ts",
+);
+// ------- XPathEngine Class -------
+const xPathEngineLiteral = xpathSelectorEngineSourceFile.getVariableDeclarationOrThrow("XPathEngine").getInitializerIfKindOrThrow(SyntaxKind.ObjectLiteralExpression);
+// -- evaluateExpression Method --
+const queryAllMethod = xPathEngineLiteral.getProperty("queryAll");
+const queryAllMethodBody = queryAllMethod.getBody();
+queryAllMethodBody.insertStatements(0, [
+  "if (root.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {",
+  "  console.log('Got CSR:', root);",
+  "  const result: Element[] = [];",
+  "  // Custom ClosedShadowRoot XPath Engine",
+  "  const parser = new DOMParser();",
+  "  // Function to (recursively) get all elements in the shadowRoot",
+  "  function getAllChildElements(node) {",
+  "    const elements = [];",
+  "    const traverse = (currentNode) => {",
+  "      if (currentNode.nodeType === Node.ELEMENT_NODE) elements.push(currentNode);",
+  "      currentNode.childNodes?.forEach(traverse);",
+  "    };",
+  "    if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE || node.nodeType === Node.ELEMENT_NODE) {",
+  "      traverse(node);",
+  "    }",
+  "    return elements;",
+  "  }",
+  "  // Setting innerHTMl and childElements (all, recursive) to avoid race conditions",
+  "  const csrHTMLContent = root.innerHTML;",
+  "  const csrChildElements = getAllChildElements(root);",
+  "  const htmlDoc = parser.parseFromString(csrHTMLContent, 'text/html');",
+  "  const rootDiv = htmlDoc.body",
+  "  const rootDivChildElements = getAllChildElements(rootDiv);",
+  "  // Use the namespace prefix in the XPath expression",
+  "  const it = htmlDoc.evaluate(selector, htmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);",
+  "  for (let node = it.iterateNext(); node; node = it.iterateNext()) {",
+  "    // -1 for the body element",
+  "    const nodeIndex = rootDivChildElements.indexOf(node) - 1;",
+  "    if (nodeIndex >= 0) {",
+  "      const originalNode = csrChildElements[nodeIndex];",
+  "      if (originalNode.nodeType === Node.ELEMENT_NODE)",
+  "        result.push(originalNode as Element);",
+  "    }",
+  "  }",
+  "  return result;",
+  "}",
+  ""
+]);
 
 // Save the changes without reformatting
 project.saveSync();
