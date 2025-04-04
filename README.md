@@ -35,7 +35,7 @@
 > [!NOTE]  
 > This repository serves the Patchright Driver. To use Patchright, check out the [Python Package](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-python) or the [NodeJS Package](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-nodejs).
 
-> [!WARNING]  
+> [!IMPORTANT]  
 > Patchright only patches CHROMIUM based browsers. Firefox and Webkit are not supported.
 
 ---

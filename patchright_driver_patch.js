@@ -1975,10 +1975,10 @@ if (workerDispatcherEvaluateExpressionHandleCall && workerDispatcherEvaluateExpr
 }
 
 // ----------------------------
-// server/injected/xpathSelectorEngine.ts
+// injected/src/xpathSelectorEngine.ts
 // ----------------------------
 const xpathSelectorEngineSourceFile = project.addSourceFileAtPath(
-  "packages/playwright-core/src/server/injected/xpathSelectorEngine.ts",
+  "packages/injected/src/xpathSelectorEngine.ts",
 );
 // ------- XPathEngine Class -------
 const xPathEngineLiteral = xpathSelectorEngineSourceFile.getVariableDeclarationOrThrow("XPathEngine").getInitializerIfKindOrThrow(SyntaxKind.ObjectLiteralExpression);
