@@ -1,7 +1,7 @@
 # NOTE: This patch file is generated automatically and is not used, it is only for documentation. The driver is actually patched using [patchright_driver_patch](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/blob/main/patchright_driver_patch.js), see [the workflow](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/blob/main/.github/workflows/patchright_workflow.yml)
 diff -ruN playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts
---- playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:28.224744441 +0000
-+++ patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-04-04 17:57:52.532067077 +0000
++++ patchright/node_modules/playwright-core/src/server/bidi/bidiPage.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -376,7 +376,7 @@
        this._initScriptIds.push(script);
    }
@@ -12,8 +12,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/bidi/bidiPage.ts pa
      this._initScriptIds = [];
      await Promise.all(promises);
 diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts patchright/node_modules/playwright-core/src/server/browserContext.ts
---- playwright/node_modules/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:28.224744441 +0000
-+++ patchright/node_modules/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:34.987772202 +0000
+--- playwright/node_modules/playwright-core/src/server/browserContext.ts	2025-04-04 17:57:52.532067077 +0000
++++ patchright/node_modules/playwright-core/src/server/browserContext.ts	2025-04-04 17:57:59.080107462 +0000
 @@ -150,7 +150,7 @@
      if (debugMode() === 'console')
        await this.extendInjectedScript(consoleApiSource.source);
@@ -56,8 +56,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/browserContext.ts p
  
    async setRequestInterceptor(handler: network.RouteHandler | undefined): Promise<void> {
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts
---- playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-04 17:57:52.532067077 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -58,27 +58,16 @@
    '--disable-field-trial-config', // https://source.chromium.org/chromium/chromium/src/+/main:testing/variations/README.md
    '--disable-background-networking',
@@ -97,8 +97,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/chromiumSw
 +  '--disable-blink-features=AutomationControlled'
  ];
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crBrowser.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -474,11 +474,6 @@
        await (page._delegate as CRPage).addInitScript(initScript);
    }
@@ -129,8 +129,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crBrowser.
 +  }
  }
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crDevTools.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -67,7 +67,6 @@
        }).catch(e => null);
      });
@@ -140,8 +140,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crDevTools
        session.send('Page.enable'),
        session.send('Page.addScriptToEvaluateOnNewDocument', { source: `
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -182,22 +182,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
        }
      }
      const isNavigationRequest = requestWillBeSentEvent.requestId === requestWillBeSentEvent.loaderId && requestWillBeSentEvent.type === 'Document';
-@@ -449,13 +453,7 @@
-   }
- 
-   _handleRequestRedirect(request: InterceptableRequest, responsePayload: Protocol.Network.Response, timestamp: number, hasExtraInfo: boolean) {
--    const response = this._createResponse(request, responsePayload, hasExtraInfo);
--    response.setTransferSize(null);
--    response.setEncodedBodySize(null);
--    response._requestFinished((timestamp - request._timestamp) * 1000);
--    this._deleteRequest(request);
--    (this._page?._frameManager || this._serviceWorker)!.requestReceivedResponse(response);
--    (this._page?._frameManager || this._serviceWorker)!.reportRequestFinished(request.request, response);
-+    return;
-   }
- 
-   _onResponseReceivedExtraInfo(event: Protocol.Network.responseReceivedExtraInfoPayload) {
-@@ -547,6 +545,8 @@
+@@ -547,6 +551,8 @@
      if (request.session !== sessionInfo.session && !sessionInfo.isMain && request._documentId === request._requestId)
        request.session = sessionInfo.session;
    }
@@ -206,7 +191,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
  }
  
  class InterceptableRequest {
-@@ -606,32 +606,82 @@
+@@ -606,32 +612,82 @@
    _alreadyContinuedParams: Protocol.Fetch.continueRequestParameters | undefined;
    _fulfilled: boolean = false;
  
@@ -297,16 +282,16 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
          responseCode: response.status,
          responsePhrase: network.statusText(response.status),
          responseHeaders,
-@@ -650,6 +700,33 @@
+@@ -650,6 +706,33 @@
        });
      });
    }
 +
 +  async _networkRequestIntercepted(event) {
 +    if (event.resourceType !== 'Document') {
-+      await catchDisallowedErrors(async () => {
++      /*await catchDisallowedErrors(async () => {
 +        await this._session.send('Fetch.continueRequest', { requestId: event.requestId });
-+      });
++      });*/
 +      return;
 +    }
 +    if (this._networkId != event.networkId || !this._sessionManager._alreadyTrackedNetworkIds.has(event.networkId)) return;
@@ -332,8 +317,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
  
  // In certain cases, protocol will return error if the request was already canceled
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts patchright/node_modules/playwright-core/src/server/chromium/crPage.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crPage.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -638,8 +623,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crPage.ts 
  
  async function emulateLocale(session: CRSession, locale: string) {
 diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts
---- playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/node_modules/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -44,8 +44,6 @@
        this.updateOffline();
        this._networkManager.addSession(session, undefined, true /* isMain */).catch(() => {});
@@ -650,8 +635,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crServiceW
      session.on('Inspector.targetReloadedAfterCrash', () => {
        // Resume service worker after restart.
 diff -ruN playwright/node_modules/playwright-core/src/server/clock.ts patchright/node_modules/playwright-core/src/server/clock.ts
---- playwright/node_modules/playwright-core/src/server/clock.ts	2025-04-01 20:35:28.226744450 +0000
-+++ patchright/node_modules/playwright-core/src/server/clock.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/node_modules/playwright-core/src/server/clock.ts	2025-04-04 17:57:52.534067090 +0000
++++ patchright/node_modules/playwright-core/src/server/clock.ts	2025-04-04 17:57:59.080107462 +0000
 @@ -92,6 +92,14 @@
    }
  
@@ -668,8 +653,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/clock.ts patchright
    }
  }
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-04 17:57:52.535067096 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -84,11 +84,15 @@
    }
  
@@ -689,8 +674,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/frameDi
  
    async waitForSelector(params: channels.FrameWaitForSelectorParams, metadata: CallMetadata): Promise<channels.FrameWaitForSelectorResult> {
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-04 17:57:52.535067096 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -39,11 +39,11 @@
    }
  
@@ -706,8 +691,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/jsHandl
    }
  
 diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts
---- playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
-+++ patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-04 17:57:52.535067096 +0000
++++ patchright/node_modules/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -353,11 +353,11 @@
    }
  
@@ -723,8 +708,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/dispatchers/pageDis
  }
  
 diff -ruN playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts
---- playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:28.228744459 +0000
-+++ patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-04-04 17:57:52.536067102 +0000
++++ patchright/node_modules/playwright-core/src/server/firefox/ffPage.ts	2025-04-04 17:57:59.084107486 +0000
 @@ -390,7 +390,7 @@
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
@@ -735,8 +720,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/firefox/ffPage.ts p
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
 diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchright/node_modules/playwright-core/src/server/frames.ts
---- playwright/node_modules/playwright-core/src/server/frames.ts	2025-04-01 20:35:28.228744459 +0000
-+++ patchright/node_modules/playwright-core/src/server/frames.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/node_modules/playwright-core/src/server/frames.ts	2025-04-04 17:57:52.536067102 +0000
++++ patchright/node_modules/playwright-core/src/server/frames.ts	2025-04-04 17:57:59.080107462 +0000
 @@ -1,3 +1,7 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import { CRExecutionContext } from './chromium/crExecutionContext';
@@ -923,7 +908,29 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
      return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
    }
  
-@@ -908,31 +962,38 @@
+@@ -886,7 +940,20 @@
+   }
+ 
+   async queryCount(selector: string): Promise<number> {
+-    return await this.selectors.queryCount(selector);
++    const custom_metadata = {
++      "internal": false,
++      "log": []
++    };
++    const controller = new _progress.ProgressController(custom_metadata, this);
++    return await controller.run(async progress => {
++      progress.log("waiting for " + this._asLocator(selector));
++      const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
++        const handle = result[0];
++        const handles = result[1];
++        return handle ? handles.length : 0;
++      }, 'returnAll');
++      return promise;
++    }, 100); // A bit geeky but its okay :D
+   }
+ 
+   async content(): Promise<string> {
+@@ -908,31 +975,38 @@
    }
  
    async setContent(metadata: CallMetadata, html: string, options: types.NavigateOptions = {}): Promise<void> {
@@ -953,7 +960,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +              this._onClearLifecycle();
 +              this._waitForLoadState(progress, waitUntil).then(resolve).catch(reject);
 +            });
-           });
++          });
 +          const contentPromise = context.evaluate(({ html, tag, bindingName }) => {
 +            document.open();
 +            var _tagDebug = window[bindingName].bind({});
@@ -964,7 +971,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +            document.close();
 +          }, { html, tag,
 +            bindingName
-+          });
+           });
 +          await Promise.all([contentPromise, lifecyclePromise]);
 +          return null;
          });
@@ -985,7 +992,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
  
    name(): string {
      return this._name || '';
-@@ -1125,50 +1186,74 @@
+@@ -1125,50 +1199,74 @@
      selector: string,
      strict: boolean | undefined,
      performActionPreChecks: boolean,
@@ -1092,7 +1099,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
      });
    }
  
-@@ -1319,17 +1404,34 @@
+@@ -1319,17 +1417,34 @@
  
    async isVisibleInternal(selector: string, options: types.StrictOptions = {}, scope?: dom.ElementHandle): Promise<boolean> {
      try {
@@ -1137,7 +1144,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        return false;
      }
    }
-@@ -1489,40 +1591,46 @@
+@@ -1489,40 +1604,46 @@
    }
  
    private async _expectInternal(progress: Progress, selector: string, options: FrameExpectParams, lastIntermediateResult: { received?: any, isSet: boolean }) {
@@ -1165,18 +1172,6 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +        }, { handle, options, handles });
 +      }
 +    }, 'returnAll');
-+
-+    // Default Values, if no Elements found
-+    var matches = false;
-+    var received = 0;
-+    var missingReceived = null;
-+    if (promise) {
-+      matches = promise.matches;
-+      received = promise.received;
-+      missingReceived = promise.missingReceived;
-+    } else if (options.expectedNumber === 0) {
-+      matches = true;
-+    }
  
 -    const { log, matches, received, missingReceived } = await injected.evaluate(async (injected, { info, options, callId }) => {
 -      const elements = info ? injected.querySelectorAll(info.parsed, document) : [];
@@ -1196,6 +1191,18 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 -    if (log)
 -      progress.log(log);
 -    // Note: missingReceived avoids `unexpected value "undefined"` when element was not found.
++    // Default Values, if no Elements found
++    var matches = false;
++    var received = 0;
++    var missingReceived = null;
++    if (promise) {
++      matches = promise.matches;
++      received = promise.received;
++      missingReceived = promise.missingReceived;
++    } else if (options.expectedNumber === 0) {
++      matches = true;
++    }
++
 +    // Note: missingReceived avoids unexpected value "undefined" when element was not found.
      if (matches === options.isNot) {
        lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
@@ -1212,7 +1219,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
    }
  
    async _waitForFunctionExpression<R>(metadata: CallMetadata, expression: string, isFunction: boolean | undefined, arg: any, options: types.WaitForFunctionOptions, world: types.World = 'main'): Promise<js.SmartHandle<R>> {
-@@ -1632,28 +1740,27 @@
+@@ -1632,28 +1753,27 @@
      const callbackText = body.toString();
      const controller = new ProgressController(metadata, this);
      return controller.run(async progress => {
@@ -1262,7 +1269,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1864,170 @@
+@@ -1757,6 +1877,170 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -1434,8 +1441,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
  
  class SignalBarrier {
 diff -ruN playwright/node_modules/playwright-core/src/server/javascript.ts patchright/node_modules/playwright-core/src/server/javascript.ts
---- playwright/node_modules/playwright-core/src/server/javascript.ts	2025-04-01 20:35:28.230744468 +0000
-+++ patchright/node_modules/playwright-core/src/server/javascript.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/node_modules/playwright-core/src/server/javascript.ts	2025-04-04 17:57:52.536067102 +0000
++++ patchright/node_modules/playwright-core/src/server/javascript.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -154,17 +154,33 @@
      return evaluate(this._context, false /* returnByValue */, pageFunction, this, arg);
    }
@@ -1481,8 +1488,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/javascript.ts patch
    async getProperty(propertyName: string): Promise<JSHandle> {
      const objectHandle = await this.evaluateHandle((object: any, propertyName) => {
 diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/node_modules/playwright-core/src/server/page.ts
---- playwright/node_modules/playwright-core/src/server/page.ts	2025-04-01 20:35:28.231744473 +0000
-+++ patchright/node_modules/playwright-core/src/server/page.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/node_modules/playwright-core/src/server/page.ts	2025-04-04 17:57:52.537067108 +0000
++++ patchright/node_modules/playwright-core/src/server/page.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -61,7 +61,7 @@
    goForward(): Promise<boolean>;
    requestGC(): Promise<void>;
@@ -1626,8 +1633,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/page.ts patchright/
      this.name = name;
    }
 diff -ruN playwright/node_modules/playwright-core/src/server/pageBinding.ts patchright/node_modules/playwright-core/src/server/pageBinding.ts
---- playwright/node_modules/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:28.231744473 +0000
-+++ patchright/node_modules/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/node_modules/playwright-core/src/server/pageBinding.ts	2025-04-04 17:57:52.537067108 +0000
++++ patchright/node_modules/playwright-core/src/server/pageBinding.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -26,10 +26,11 @@
    serializedArgs?: SerializedValue[],
  };
@@ -1651,8 +1658,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/pageBinding.ts patc
  
  export function takeBindingHandle(arg: { name: string, seq: number }) {
 diff -ruN playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts
---- playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:28.234744486 +0000
-+++ patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-04-04 17:57:52.540067127 +0000
++++ patchright/node_modules/playwright-core/src/server/webkit/wkPage.ts	2025-04-04 17:57:59.084107486 +0000
 @@ -768,7 +768,7 @@
      await this._updateBootstrapScript();
    }
@@ -1662,9 +1669,61 @@ diff -ruN playwright/node_modules/playwright-core/src/server/webkit/wkPage.ts pa
      await this._updateBootstrapScript();
    }
  
+diff -ruN playwright/packages/injected/src/xpathSelectorEngine.ts patchright/packages/injected/src/xpathSelectorEngine.ts
+--- playwright/packages/injected/src/xpathSelectorEngine.ts	2025-04-04 17:57:52.524067028 +0000
++++ patchright/packages/injected/src/xpathSelectorEngine.ts	2025-04-04 17:57:59.080107462 +0000
+@@ -18,6 +18,48 @@
+ 
+ export const XPathEngine: SelectorEngine = {
+   queryAll(root: SelectorRoot, selector: string): Element[] {
++    if (root.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
++      console.log('Got CSR:', root);
++      const result: Element[] = [];
++      // Custom ClosedShadowRoot XPath Engine
++      const parser = new DOMParser();
++      // Function to (recursively) get all elements in the shadowRoot
++      function getAllChildElements(node) {
++        const elements = [];
++        const traverse = (currentNode) => {
++          if (currentNode.nodeType === Node.ELEMENT_NODE) elements.push(currentNode);
++          currentNode.childNodes?.forEach(traverse);
++        };
++        if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE || node.nodeType === Node.ELEMENT_NODE) {
++          traverse(node);
++        }
++
++        return elements;
++      }
++
++      // Setting innerHTMl and childElements (all, recursive) to avoid race conditions
++      const csrHTMLContent = root.innerHTML;
++      const csrChildElements = getAllChildElements(root);
++      const htmlDoc = parser.parseFromString(csrHTMLContent, 'text/html');
++      const rootDiv = htmlDoc.body
++      const rootDivChildElements = getAllChildElements(rootDiv);
++      // Use the namespace prefix in the XPath expression
++      const it = htmlDoc.evaluate(selector, htmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
++      for (let node = it.iterateNext(); node; node = it.iterateNext()) {
++        // -1 for the body element
++        const nodeIndex = rootDivChildElements.indexOf(node) - 1;
++        if (nodeIndex >= 0) {
++          const originalNode = csrChildElements[nodeIndex];
++          if (originalNode.nodeType === Node.ELEMENT_NODE)
++            result.push(originalNode as Element);
++        }
++
++      }
++
++      return result;
++    }
++
++    
+     if (selector.startsWith('/') && root.nodeType !== Node.DOCUMENT_NODE)
+       selector = '.' + selector;
+     const result: Element[] = [];
 diff -ruN playwright/packages/playwright-core/src/server/bidi/bidiPage.ts patchright/packages/playwright-core/src/server/bidi/bidiPage.ts
---- playwright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:28.224744441 +0000
-+++ patchright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-04-04 17:57:52.532067077 +0000
++++ patchright/packages/playwright-core/src/server/bidi/bidiPage.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -376,7 +376,7 @@
        this._initScriptIds.push(script);
    }
@@ -1675,8 +1734,8 @@ diff -ruN playwright/packages/playwright-core/src/server/bidi/bidiPage.ts patchr
      this._initScriptIds = [];
      await Promise.all(promises);
 diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patchright/packages/playwright-core/src/server/browserContext.ts
---- playwright/packages/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:28.224744441 +0000
-+++ patchright/packages/playwright-core/src/server/browserContext.ts	2025-04-01 20:35:34.987772202 +0000
+--- playwright/packages/playwright-core/src/server/browserContext.ts	2025-04-04 17:57:52.532067077 +0000
++++ patchright/packages/playwright-core/src/server/browserContext.ts	2025-04-04 17:57:59.080107462 +0000
 @@ -150,7 +150,7 @@
      if (debugMode() === 'console')
        await this.extendInjectedScript(consoleApiSource.source);
@@ -1719,8 +1778,8 @@ diff -ruN playwright/packages/playwright-core/src/server/browserContext.ts patch
  
    async setRequestInterceptor(handler: network.RouteHandler | undefined): Promise<void> {
 diff -ruN playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts
---- playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-04 17:57:52.532067077 +0000
++++ patchright/packages/playwright-core/src/server/chromium/chromiumSwitches.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -58,27 +58,16 @@
    '--disable-field-trial-config', // https://source.chromium.org/chromium/chromium/src/+/main:testing/variations/README.md
    '--disable-background-networking',
@@ -1760,8 +1819,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/chromiumSwitch
 +  '--disable-blink-features=AutomationControlled'
  ];
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crBrowser.ts patchright/packages/playwright-core/src/server/chromium/crBrowser.ts
---- playwright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crBrowser.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -474,11 +474,6 @@
        await (page._delegate as CRPage).addInitScript(initScript);
    }
@@ -1792,8 +1851,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crBrowser.ts p
 +  }
  }
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crDevTools.ts patchright/packages/playwright-core/src/server/chromium/crDevTools.ts
---- playwright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-04-01 20:35:34.989772210 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crDevTools.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -67,7 +67,6 @@
        }).catch(e => null);
      });
@@ -1803,8 +1862,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crDevTools.ts 
        session.send('Page.enable'),
        session.send('Page.addScriptToEvaluateOnNewDocument', { source: `
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts
---- playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crNetworkManager.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -1845,22 +1904,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
        }
      }
      const isNavigationRequest = requestWillBeSentEvent.requestId === requestWillBeSentEvent.loaderId && requestWillBeSentEvent.type === 'Document';
-@@ -449,13 +453,7 @@
-   }
- 
-   _handleRequestRedirect(request: InterceptableRequest, responsePayload: Protocol.Network.Response, timestamp: number, hasExtraInfo: boolean) {
--    const response = this._createResponse(request, responsePayload, hasExtraInfo);
--    response.setTransferSize(null);
--    response.setEncodedBodySize(null);
--    response._requestFinished((timestamp - request._timestamp) * 1000);
--    this._deleteRequest(request);
--    (this._page?._frameManager || this._serviceWorker)!.requestReceivedResponse(response);
--    (this._page?._frameManager || this._serviceWorker)!.reportRequestFinished(request.request, response);
-+    return;
-   }
- 
-   _onResponseReceivedExtraInfo(event: Protocol.Network.responseReceivedExtraInfoPayload) {
-@@ -547,6 +545,8 @@
+@@ -547,6 +551,8 @@
      if (request.session !== sessionInfo.session && !sessionInfo.isMain && request._documentId === request._requestId)
        request.session = sessionInfo.session;
    }
@@ -1869,7 +1913,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
  }
  
  class InterceptableRequest {
-@@ -606,32 +606,82 @@
+@@ -606,32 +612,82 @@
    _alreadyContinuedParams: Protocol.Fetch.continueRequestParameters | undefined;
    _fulfilled: boolean = false;
  
@@ -1960,16 +2004,16 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
          responseCode: response.status,
          responsePhrase: network.statusText(response.status),
          responseHeaders,
-@@ -650,6 +700,33 @@
+@@ -650,6 +706,33 @@
        });
      });
    }
 +
 +  async _networkRequestIntercepted(event) {
 +    if (event.resourceType !== 'Document') {
-+      await catchDisallowedErrors(async () => {
++      /*await catchDisallowedErrors(async () => {
 +        await this._session.send('Fetch.continueRequest', { requestId: event.requestId });
-+      });
++      });*/
 +      return;
 +    }
 +    if (this._networkId != event.networkId || !this._sessionManager._alreadyTrackedNetworkIds.has(event.networkId)) return;
@@ -1995,8 +2039,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
  
  // In certain cases, protocol will return error if the request was already canceled
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patchright/packages/playwright-core/src/server/chromium/crPage.ts
---- playwright/packages/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crPage.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crPage.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crPage.ts	2025-04-04 17:57:59.082107474 +0000
 @@ -1,3 +1,5 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import crypto from 'crypto';
@@ -2301,8 +2345,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crPage.ts patc
  
  async function emulateLocale(session: CRSession, locale: string) {
 diff -ruN playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts
---- playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:28.225744445 +0000
-+++ patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-04 17:57:52.533067083 +0000
++++ patchright/packages/playwright-core/src/server/chromium/crServiceWorker.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -44,8 +44,6 @@
        this.updateOffline();
        this._networkManager.addSession(session, undefined, true /* isMain */).catch(() => {});
@@ -2313,8 +2357,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crServiceWorke
      session.on('Inspector.targetReloadedAfterCrash', () => {
        // Resume service worker after restart.
 diff -ruN playwright/packages/playwright-core/src/server/clock.ts patchright/packages/playwright-core/src/server/clock.ts
---- playwright/packages/playwright-core/src/server/clock.ts	2025-04-01 20:35:28.226744450 +0000
-+++ patchright/packages/playwright-core/src/server/clock.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/packages/playwright-core/src/server/clock.ts	2025-04-04 17:57:52.534067090 +0000
++++ patchright/packages/playwright-core/src/server/clock.ts	2025-04-04 17:57:59.080107462 +0000
 @@ -92,6 +92,14 @@
    }
  
@@ -2331,8 +2375,8 @@ diff -ruN playwright/packages/playwright-core/src/server/clock.ts patchright/pac
    }
  }
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-01 20:35:34.990772214 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-04 17:57:52.535067096 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/frameDispatcher.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -84,11 +84,15 @@
    }
  
@@ -2352,8 +2396,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/frameDispat
  
    async waitForSelector(params: channels.FrameWaitForSelectorParams, metadata: CallMetadata): Promise<channels.FrameWaitForSelectorResult> {
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-04 17:57:52.535067096 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/jsHandleDispatcher.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -39,11 +39,11 @@
    }
  
@@ -2369,8 +2413,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/jsHandleDis
    }
  
 diff -ruN playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts
---- playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:28.227744455 +0000
-+++ patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-04 17:57:52.535067096 +0000
++++ patchright/packages/playwright-core/src/server/dispatchers/pageDispatcher.ts	2025-04-04 17:57:59.083107480 +0000
 @@ -353,11 +353,11 @@
    }
  
@@ -2386,8 +2430,8 @@ diff -ruN playwright/packages/playwright-core/src/server/dispatchers/pageDispatc
  }
  
 diff -ruN playwright/packages/playwright-core/src/server/firefox/ffPage.ts patchright/packages/playwright-core/src/server/firefox/ffPage.ts
---- playwright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:28.228744459 +0000
-+++ patchright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-04-04 17:57:52.536067102 +0000
++++ patchright/packages/playwright-core/src/server/firefox/ffPage.ts	2025-04-04 17:57:59.084107486 +0000
 @@ -390,7 +390,7 @@
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
@@ -2398,8 +2442,8 @@ diff -ruN playwright/packages/playwright-core/src/server/firefox/ffPage.ts patch
      await this._session.send('Page.setInitScripts', { scripts: this._initScripts.map(s => ({ script: s.initScript.source, worldName: s.worldName })) });
    }
 diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/packages/playwright-core/src/server/frames.ts
---- playwright/packages/playwright-core/src/server/frames.ts	2025-04-01 20:35:28.228744459 +0000
-+++ patchright/packages/playwright-core/src/server/frames.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/packages/playwright-core/src/server/frames.ts	2025-04-04 17:57:52.536067102 +0000
++++ patchright/packages/playwright-core/src/server/frames.ts	2025-04-04 17:57:59.080107462 +0000
 @@ -1,3 +1,7 @@
 +// undetected-undetected_playwright-patch - custom imports
 +import { CRExecutionContext } from './chromium/crExecutionContext';
@@ -2586,7 +2630,29 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
      return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
    }
  
-@@ -908,31 +962,38 @@
+@@ -886,7 +940,20 @@
+   }
+ 
+   async queryCount(selector: string): Promise<number> {
+-    return await this.selectors.queryCount(selector);
++    const custom_metadata = {
++      "internal": false,
++      "log": []
++    };
++    const controller = new _progress.ProgressController(custom_metadata, this);
++    return await controller.run(async progress => {
++      progress.log("waiting for " + this._asLocator(selector));
++      const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
++        const handle = result[0];
++        const handles = result[1];
++        return handle ? handles.length : 0;
++      }, 'returnAll');
++      return promise;
++    }, 100); // A bit geeky but its okay :D
+   }
+ 
+   async content(): Promise<string> {
+@@ -908,31 +975,38 @@
    }
  
    async setContent(metadata: CallMetadata, html: string, options: types.NavigateOptions = {}): Promise<void> {
@@ -2616,7 +2682,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +              this._onClearLifecycle();
 +              this._waitForLoadState(progress, waitUntil).then(resolve).catch(reject);
 +            });
-           });
++          });
 +          const contentPromise = context.evaluate(({ html, tag, bindingName }) => {
 +            document.open();
 +            var _tagDebug = window[bindingName].bind({});
@@ -2627,7 +2693,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +            document.close();
 +          }, { html, tag,
 +            bindingName
-+          });
+           });
 +          await Promise.all([contentPromise, lifecyclePromise]);
 +          return null;
          });
@@ -2648,7 +2714,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
  
    name(): string {
      return this._name || '';
-@@ -1125,50 +1186,74 @@
+@@ -1125,50 +1199,74 @@
      selector: string,
      strict: boolean | undefined,
      performActionPreChecks: boolean,
@@ -2755,7 +2821,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
      });
    }
  
-@@ -1319,17 +1404,34 @@
+@@ -1319,17 +1417,34 @@
  
    async isVisibleInternal(selector: string, options: types.StrictOptions = {}, scope?: dom.ElementHandle): Promise<boolean> {
      try {
@@ -2800,7 +2866,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        return false;
      }
    }
-@@ -1489,40 +1591,46 @@
+@@ -1489,40 +1604,46 @@
    }
  
    private async _expectInternal(progress: Progress, selector: string, options: FrameExpectParams, lastIntermediateResult: { received?: any, isSet: boolean }) {
@@ -2828,18 +2894,6 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +        }, { handle, options, handles });
 +      }
 +    }, 'returnAll');
-+
-+    // Default Values, if no Elements found
-+    var matches = false;
-+    var received = 0;
-+    var missingReceived = null;
-+    if (promise) {
-+      matches = promise.matches;
-+      received = promise.received;
-+      missingReceived = promise.missingReceived;
-+    } else if (options.expectedNumber === 0) {
-+      matches = true;
-+    }
  
 -    const { log, matches, received, missingReceived } = await injected.evaluate(async (injected, { info, options, callId }) => {
 -      const elements = info ? injected.querySelectorAll(info.parsed, document) : [];
@@ -2859,6 +2913,18 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 -    if (log)
 -      progress.log(log);
 -    // Note: missingReceived avoids `unexpected value "undefined"` when element was not found.
++    // Default Values, if no Elements found
++    var matches = false;
++    var received = 0;
++    var missingReceived = null;
++    if (promise) {
++      matches = promise.matches;
++      received = promise.received;
++      missingReceived = promise.missingReceived;
++    } else if (options.expectedNumber === 0) {
++      matches = true;
++    }
++
 +    // Note: missingReceived avoids unexpected value "undefined" when element was not found.
      if (matches === options.isNot) {
        lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
@@ -2875,7 +2941,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
    }
  
    async _waitForFunctionExpression<R>(metadata: CallMetadata, expression: string, isFunction: boolean | undefined, arg: any, options: types.WaitForFunctionOptions, world: types.World = 'main'): Promise<js.SmartHandle<R>> {
-@@ -1632,28 +1740,27 @@
+@@ -1632,28 +1753,27 @@
      const callbackText = body.toString();
      const controller = new ProgressController(metadata, this);
      return controller.run(async progress => {
@@ -2925,7 +2991,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1864,170 @@
+@@ -1757,6 +1877,170 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -3097,8 +3163,8 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
  
  class SignalBarrier {
 diff -ruN playwright/packages/playwright-core/src/server/javascript.ts patchright/packages/playwright-core/src/server/javascript.ts
---- playwright/packages/playwright-core/src/server/javascript.ts	2025-04-01 20:35:28.230744468 +0000
-+++ patchright/packages/playwright-core/src/server/javascript.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/packages/playwright-core/src/server/javascript.ts	2025-04-04 17:57:52.536067102 +0000
++++ patchright/packages/playwright-core/src/server/javascript.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -154,17 +154,33 @@
      return evaluate(this._context, false /* returnByValue */, pageFunction, this, arg);
    }
@@ -3144,8 +3210,8 @@ diff -ruN playwright/packages/playwright-core/src/server/javascript.ts patchrigh
    async getProperty(propertyName: string): Promise<JSHandle> {
      const objectHandle = await this.evaluateHandle((object: any, propertyName) => {
 diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/packages/playwright-core/src/server/page.ts
---- playwright/packages/playwright-core/src/server/page.ts	2025-04-01 20:35:28.231744473 +0000
-+++ patchright/packages/playwright-core/src/server/page.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/packages/playwright-core/src/server/page.ts	2025-04-04 17:57:52.537067108 +0000
++++ patchright/packages/playwright-core/src/server/page.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -61,7 +61,7 @@
    goForward(): Promise<boolean>;
    requestGC(): Promise<void>;
@@ -3289,8 +3355,8 @@ diff -ruN playwright/packages/playwright-core/src/server/page.ts patchright/pack
      this.name = name;
    }
 diff -ruN playwright/packages/playwright-core/src/server/pageBinding.ts patchright/packages/playwright-core/src/server/pageBinding.ts
---- playwright/packages/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:28.231744473 +0000
-+++ patchright/packages/playwright-core/src/server/pageBinding.ts	2025-04-01 20:35:34.988772206 +0000
+--- playwright/packages/playwright-core/src/server/pageBinding.ts	2025-04-04 17:57:52.537067108 +0000
++++ patchright/packages/playwright-core/src/server/pageBinding.ts	2025-04-04 17:57:59.081107468 +0000
 @@ -26,10 +26,11 @@
    serializedArgs?: SerializedValue[],
  };
@@ -3314,8 +3380,8 @@ diff -ruN playwright/packages/playwright-core/src/server/pageBinding.ts patchrig
  
  export function takeBindingHandle(arg: { name: string, seq: number }) {
 diff -ruN playwright/packages/playwright-core/src/server/webkit/wkPage.ts patchright/packages/playwright-core/src/server/webkit/wkPage.ts
---- playwright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:28.234744486 +0000
-+++ patchright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-04-01 20:35:34.991772217 +0000
+--- playwright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-04-04 17:57:52.540067127 +0000
++++ patchright/packages/playwright-core/src/server/webkit/wkPage.ts	2025-04-04 17:57:59.084107486 +0000
 @@ -768,7 +768,7 @@
      await this._updateBootstrapScript();
    }
@@ -3326,8 +3392,8 @@ diff -ruN playwright/packages/playwright-core/src/server/webkit/wkPage.ts patchr
    }
  
 diff -ruN playwright/packages/protocol/src/protocol.yml patchright/packages/protocol/src/protocol.yml
---- playwright/packages/protocol/src/protocol.yml	2025-04-01 20:35:28.287744729 +0000
-+++ patchright/packages/protocol/src/protocol.yml	2025-04-01 20:35:35.182772934 +0000
+--- playwright/packages/protocol/src/protocol.yml	2025-04-04 17:57:52.590067435 +0000
++++ patchright/packages/protocol/src/protocol.yml	2025-04-04 17:57:59.272108655 +0000
 @@ -1,17 +1,3 @@
 -# Copyright (c) Microsoft Corporation.
 -#
