@@ -2019,7 +2019,7 @@ if (workerDispatcherEvaluateExpressionHandleCall && workerDispatcherEvaluateExpr
 // injected/src/xpathSelectorEngine.ts
 // ----------------------------
 const xpathSelectorEngineSourceFile = project.addSourceFileAtPath(
-  "packages/injected/src/xpathSelectorEngine.ts",
+  "packages/playwright-core/src/server/injected/xpathSelectorEngine.ts",
 );
 // ------- XPathEngine Class -------
 const xPathEngineLiteral = xpathSelectorEngineSourceFile.getVariableDeclarationOrThrow("XPathEngine").getInitializerIfKindOrThrow(SyntaxKind.ObjectLiteralExpression);
