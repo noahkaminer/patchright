@@ -851,7 +851,7 @@ const promise = this._retryWithProgressIfNotConnected(progress, selector, option
   } catch (e) {
     return "internal:continuepolling";
   }
-}, 'returnOnNotResolved');
+});
 return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;`)
 
 // -- isVisibleInternal Method --
