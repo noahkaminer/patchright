@@ -895,7 +895,7 @@ queryCountlMethod.setBodyText(`const custom_metadata = {
   "log": []
 };
 const controller = new ProgressController(custom_metadata, this);
-return await controller.run(async progress => {
+const resultPromise = await controller.run(async progress => {
   progress.log("waiting for " + this._asLocator(selector));
   const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
     const handle = result[0];
@@ -904,6 +904,7 @@ return await controller.run(async progress => {
   }, 'returnAll');
   return promise;
 }, 100); // A bit geeky but its okay :D
+return resultPromise ? resultPromise : 0;
 `);
 
 // -- _expectInternal Method --
