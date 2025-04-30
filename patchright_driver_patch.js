@@ -1671,9 +1671,7 @@ const pageBindingConstructor = pageBindingClass.getConstructors()[0];
 pageBindingConstructor.setBodyText(
   `this.name = name;
 this.playwrightFunction = playwrightFunction;
-this.source = ` +
-    "`(${addPageBinding.toString()})(${JSON.stringify(name)}, ${needsHandle}, (${source})())`;" +
-    `
+this.source = createPageBindingScript(name, needsHandle);
 this.needsHandle = needsHandle;`,
 );
 
@@ -1765,7 +1763,7 @@ addPageBindingFunction.getStatements().forEach((statement) => {
     // Replace the line with the new code.
     statement.replaceWithText(
       `const binding = (globalThis as any)[bindingName];
-if (binding && binding.toString().startsWith("(...args) => {")) return`,
+if (!binding || binding.toString().startsWith("(...args) => {")) return`,
     );
   }
 });
@@ -1793,6 +1791,11 @@ for (const statement of statements) {
     }
   }
 }
+
+// ------- createPageBindingScript Function -------
+const createPageBindingScriptFunction = pageBindingSourceFile.getFunction("createPageBindingScript");
+createPageBindingScriptFunction.getParameter("playwrightBinding")?.remove();
+createPageBindingScriptFunction.setBodyText('return `(${addPageBinding.toString()})(${JSON.stringify(name)}, ${needsHandle}, (${source}), (${builtins})())`;')
 
 // ----------------------------
 // server/clock.ts
@@ -1974,6 +1977,32 @@ if (workerDispatcherEvaluateExpressionHandleCall && workerDispatcherEvaluateExpr
       // Add the new argument to the function call
       workerDispatcherEvaluateExpressionHandleCall.addArgument("params.isolatedContext");
 }
+
+// ----------------------------
+// injected/src/xpathSelectorEngine.ts
+// ----------------------------
+const isomorphicBuiltinsSourceFile = project.addSourceFileAtPath(
+  "packages/playwright-core/src/utils/isomorphic/builtins.ts"
+);
+// -- evaluateExpression Method --
+const isomorphicBuiltinsMethod = isomorphicBuiltinsSourceFile.getFunction("builtins");
+isomorphicBuiltinsMethod.setBodyText(`global = global ?? globalThis;
+  return {
+    setTimeout: global.setTimeout?.bind(global),
+    clearTimeout: global.clearTimeout?.bind(global),
+    setInterval: global.setInterval?.bind(global),
+    clearInterval: global.clearInterval?.bind(global),
+    requestAnimationFrame: global.requestAnimationFrame?.bind(global),
+    cancelAnimationFrame: global.cancelAnimationFrame?.bind(global),
+    requestIdleCallback: global.requestIdleCallback?.bind(global),
+    cancelIdleCallback: global.cancelIdleCallback?.bind(global),
+    performance: global.performance,
+    eval: global.eval?.bind(global),
+    Intl: global.Intl,
+    Date: global.Date,
+    Map: global.Map,
+    Set: global.Set
+  };`);
 
 // ----------------------------
 // injected/src/xpathSelectorEngine.ts
