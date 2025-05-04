@@ -230,7 +230,7 @@ const crNetworkManagerSourceFile = project.addSourceFileAtPath(
 );
 // Add the custom import and comment at the start of the file
 crNetworkManagerSourceFile.insertStatements(0, [
-  "// undetected-undetected_playwright-patch - custom imports",
+  "// patchright - custom imports",
   "import crypto from 'crypto';",
   "",
 ]);
@@ -476,7 +476,7 @@ const framesSourceFile = project.addSourceFileAtPath(
 );
 // Add the custom import and comment at the start of the file
 framesSourceFile.insertStatements(0, [
-  "// undetected-undetected_playwright-patch - custom imports",
+  "// patchright - custom imports",
   "import { CRExecutionContext } from './chromium/crExecutionContext';",
   "import { FrameExecutionContext } from './dom';",
   "import crypto from 'crypto';",
@@ -1134,6 +1134,186 @@ while (parsed.parts.length > 0) {
 return currentScopingElements;`);
 
 // ----------------------------
+// server/frameSelectors.ts
+// ----------------------------
+const frameSelectorsSourceFile = project.addSourceFileAtPath(
+  "packages/playwright-core/src/server/frameSelectors.ts",
+);
+// Add the custom import and comment at the start of the file
+frameSelectorsSourceFile.insertStatements(0, [
+  "// patchright - custom imports",
+  "import { ElementHandle } from './dom';",
+  "",
+]);
+// ------- FrameSelectors Class -------
+const frameSelectorsClass = frameSelectorsSourceFile.getClass("FrameSelectors");
+// -- resolveFrameForSelector Method --
+const resolveFrameForSelectorMethod = frameSelectorsClass.getMethod("resolveFrameForSelector");
+const constElementDeclaration = resolveFrameForSelectorMethod.getDescendantsOfKind(SyntaxKind.VariableStatement)
+  .find(declaration => declaration.getText().includes("const element = handle.asElement()"));
+constElementDeclaration.setDeclarationKind("let");
+
+const resolveFrameForSelectorIfStatement = resolveFrameForSelectorMethod.getDescendantsOfKind(SyntaxKind.IfStatement).find(statement => statement.getExpression().getText() === "!element" && statement.getThenStatement().getText() === "return null;");
+resolveFrameForSelectorIfStatement.replaceWithText(`if (!element) {
+  try {
+    var client = frame._page._delegate._sessionForFrame(frame)._client;
+  } catch (e) {
+    var client = frame._page._delegate._mainFrameSession._client;
+  }
+  var mainContext = await frame._context("main");
+  const documentNode = await client.send("Runtime.evaluate", {
+    expression: "document",
+    serializationOptions: {
+      serialization: "idOnly"
+    },
+    contextId: mainContext.delegate._contextId
+  });
+  const documentScope = new ElementHandle(mainContext, documentNode.result.objectId);
+  var check = await this._customFindFramesByParsed(injectedScript, client, mainContext, documentScope, info.parsed);
+  if (check.length > 0) {
+    element = check[0];
+  } else {
+    return null;
+  }
+}`);
+
+
+// -- _customFindFramesByParsed Method --
+frameSelectorsClass.addMethod({
+  name: "_customFindFramesByParsed",
+  isAsync: true,
+  parameters: [
+    { name: "injected" },
+    { name: "client" },
+    { name: "context" },
+    { name: "documentScope" },
+    { name: "parsed" },
+  ],
+});
+const customFindFramesByParsedSelectorsMethod = frameSelectorsClass.getMethod("_customFindFramesByParsed");
+customFindFramesByParsedSelectorsMethod.setBodyText(`var parsedEdits = { ...parsed };
+var currentScopingElements = [documentScope];
+while (parsed.parts.length > 0) {
+  var part = parsed.parts.shift();
+  parsedEdits.parts = [part];
+  var isUsingXPath = false;
+  var elements = [];
+  var elementsIndexes = [];
+  if (part.name == "xpath") {
+    isUsingXPath = true;
+  }
+  if (part.name == "nth") {
+    const partNth = Number(part.body);
+    if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
+      return continuePolling;
+    } else {
+      currentScopingElements = [currentScopingElements.at(partNth)];
+      continue;
+    }
+  } else if (part.name == "internal:or") {
+    var orredElements = await this._customFindFramesByParsed(injected, client, context, documentScope, part.body.parsed);
+    elements = currentScopingElements.concat(orredElements);
+  } else if (part.name == "internal:and") {
+    var andedElements = await this._customFindFramesByParsed(injected, client, context, documentScope, part.body.parsed);
+    const backendNodeIds = new Set(andedElements.map((item) => item.backendNodeId));
+    elements = currentScopingElements.filter((item) => backendNodeIds.has(item.backendNodeId));
+  } else {
+    for (const scope of currentScopingElements) {
+      const describedScope = await client.send("DOM.describeNode", {
+        objectId: scope._objectId,
+        depth: -1,
+        pierce: true
+      });
+      var queryingElements = [];
+      if (!isUsingXPath) {
+        let findClosedShadowRoots2 = function(node, results = []) {
+          if (!node || typeof node !== "object") return results;
+          if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
+            for (const shadowRoot2 of node.shadowRoots) {
+              if (shadowRoot2.shadowRootType === "closed" && shadowRoot2.backendNodeId) {
+                results.push(shadowRoot2.backendNodeId);
+              }
+              findClosedShadowRoots2(shadowRoot2, results);
+            }
+          }
+          if (node.nodeName !== "IFRAME" && node.children && Array.isArray(node.children)) {
+            for (const child of node.children) {
+              findClosedShadowRoots2(child, results);
+            }
+          }
+          return results;
+        };
+        var findClosedShadowRoots = findClosedShadowRoots2;
+        var shadowRootBackendIds = findClosedShadowRoots2(describedScope.node);
+        var shadowRoots = [];
+        for (var shadowRootBackendId of shadowRootBackendIds) {
+          var resolvedShadowRoot = await client.send("DOM.resolveNode", {
+            backendNodeId: shadowRootBackendId,
+            contextId: context.delegate._contextId
+          });
+          shadowRoots.push(new ElementHandle(context, resolvedShadowRoot.object.objectId));
+        }
+        for (var shadowRoot of shadowRoots) {
+          const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
+            const elements2 = injected.querySelectorAll(parsed2, node);
+            return elements2;
+          }, {
+            parsed: parsedEdits,
+          });
+          const shadowElementsAmount = await shadowElements.getProperty("length");
+          queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
+        }
+      }
+      const rootElements = await scope.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
+        const elements2 = injected.querySelectorAll(parsed2, node);
+        return elements2;
+      }, {
+        parsed: parsedEdits
+      });
+      const rootElementsAmount = await rootElements.getProperty("length");
+      queryingElements.push([rootElements, rootElementsAmount, injected]);
+      for (var queryedElement of queryingElements) {
+        var elementsToCheck = queryedElement[0];
+        var elementsAmount = await queryedElement[1].jsonValue();
+        var parentNode = queryedElement[2];
+        for (var i = 0; i < elementsAmount; i++) {
+          if (parentNode.constructor.name == "ElementHandle") {
+            var elementToCheck = await parentNode.evaluateHandleInUtility(([injected, node, { index, elementsToCheck: elementsToCheck2 }]) => {
+              return elementsToCheck2[index];
+            }, { index: i, elementsToCheck });
+          } else {
+            var elementToCheck = await parentNode.evaluateHandle((injected, { index, elementsToCheck: elementsToCheck2 }) => {
+              return elementsToCheck2[index];
+            }, { index: i, elementsToCheck });
+          }
+          elementToCheck.parentNode = parentNode;
+          var resolvedElement = await client.send("DOM.describeNode", {
+            objectId: elementToCheck._objectId,
+            depth: -1
+          });
+          elementToCheck.backendNodeId = resolvedElement.node.backendNodeId;
+          elements.push(elementToCheck);
+        }
+      }
+    }
+  }
+  currentScopingElements = [];
+  for (var element of elements) {
+    var elemIndex = element.backendNodeId;
+    var elemPos = elementsIndexes.findIndex((index) => index > elemIndex);
+    if (elemPos === -1) {
+      currentScopingElements.push(element);
+      elementsIndexes.push(elemIndex);
+    } else {
+      currentScopingElements.splice(elemPos, 0, element);
+      elementsIndexes.splice(elemPos, 0, elemIndex);
+    }
+  }
+}
+return currentScopingElements;`);
+
+
+// ----------------------------
 // server/chromium/crPage.ts
 // ----------------------------
 const crPageSourceFile = project.addSourceFileAtPath(
@@ -1141,7 +1321,7 @@ const crPageSourceFile = project.addSourceFileAtPath(
 );
 // Add the custom import and comment at the start of the file
 crPageSourceFile.insertStatements(0, [
-  "// undetected-undetected_playwright-patch - custom imports",
+  "// patchright - custom imports",
   "import crypto from 'crypto';",
   "",
 ]);
@@ -2017,7 +2197,6 @@ const queryAllMethod = xPathEngineLiteral.getProperty("queryAll");
 const queryAllMethodBody = queryAllMethod.getBody();
 queryAllMethodBody.insertStatements(0, [
   "if (root.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {",
-  "  console.log('Got CSR:', root);",
   "  const result: Element[] = [];",
   "  // Custom ClosedShadowRoot XPath Engine",
   "  const parser = new DOMParser();",
