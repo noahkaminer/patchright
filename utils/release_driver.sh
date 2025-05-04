@@ -23,7 +23,7 @@ if [ -z "$UPLOAD_URL" ]; then
 fi
 
 # Step 2: Upload each .zip file in the directory as an asset
-for ZIP_FILE in "/playwright-$VERSION_NUMBER-mac.zip" "/playwright-$VERSION_NUMBER-mac-arm64.zip" "/playwright-$VERSION_NUMBER-linux.zip" "/playwright-$VERSION_NUMBER-linux-arm64.zip" "/playwright-$VERSION_NUMBER-win32_x64.zip";
+for ZIP_FILE in "/playwright-$VERSION_NUMBER-mac.zip" "/playwright-$VERSION_NUMBER-mac-arm64.zip" "/playwright-$VERSION_NUMBER-linux.zip" "/playwright-$VERSION_NUMBER-linux-arm64.zip" "/playwright-$VERSION_NUMBER-win32_x64.zip" "/playwright-$VERSION_NUMBER-win32_arm64.zip";
     do
       FILE_NAME=$(basename "$ZIP_FILE")
       echo "Uploading $FILE_NAME..."
