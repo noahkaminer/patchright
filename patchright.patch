@@ -761,7 +761,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frameSelectors.ts p
        const maybeFrame = await frame._page._delegate.getContentFrame(element);
        element.dispose();
        if (!maybeFrame)
-@@ -158,6 +180,129 @@
+@@ -158,6 +180,123 @@
      const injected = await context.injectedScript();
      return { injected, info: resolved.info, frame: resolved.frame, scope: resolved.scope };
    }
@@ -772,12 +772,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frameSelectors.ts p
 +    while (parsed.parts.length > 0) {
 +      var part = parsed.parts.shift();
 +      parsedEdits.parts = [part];
-+      var isUsingXPath = false;
 +      var elements = [];
 +      var elementsIndexes = [];
-+      if (part.name == "xpath") {
-+        isUsingXPath = true;
-+      }
 +      if (part.name == "nth") {
 +        const partNth = Number(part.body);
 +        if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
@@ -801,44 +797,42 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frameSelectors.ts p
 +            pierce: true
 +          });
 +          var queryingElements = [];
-+          if (!isUsingXPath) {
-+            let findClosedShadowRoots2 = function(node, results = []) {
-+              if (!node || typeof node !== "object") return results;
-+              if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
-+                for (const shadowRoot2 of node.shadowRoots) {
-+                  if (shadowRoot2.shadowRootType === "closed" && shadowRoot2.backendNodeId) {
-+                    results.push(shadowRoot2.backendNodeId);
-+                  }
-+                  findClosedShadowRoots2(shadowRoot2, results);
++          let findClosedShadowRoots2 = function(node, results = []) {
++            if (!node || typeof node !== "object") return results;
++            if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
++              for (const shadowRoot2 of node.shadowRoots) {
++                if (shadowRoot2.shadowRootType === "closed" && shadowRoot2.backendNodeId) {
++                  results.push(shadowRoot2.backendNodeId);
 +                }
++                findClosedShadowRoots2(shadowRoot2, results);
 +              }
-+              if (node.nodeName !== "IFRAME" && node.children && Array.isArray(node.children)) {
-+                for (const child of node.children) {
-+                  findClosedShadowRoots2(child, results);
-+                }
++            }
++            if (node.nodeName !== "IFRAME" && node.children && Array.isArray(node.children)) {
++              for (const child of node.children) {
++                findClosedShadowRoots2(child, results);
 +              }
-+              return results;
-+            };
-+            var findClosedShadowRoots = findClosedShadowRoots2;
-+            var shadowRootBackendIds = findClosedShadowRoots2(describedScope.node);
-+            var shadowRoots = [];
-+            for (var shadowRootBackendId of shadowRootBackendIds) {
-+              var resolvedShadowRoot = await client.send("DOM.resolveNode", {
-+                backendNodeId: shadowRootBackendId,
-+                contextId: context.delegate._contextId
-+              });
-+              shadowRoots.push(new ElementHandle(context, resolvedShadowRoot.object.objectId));
 +            }
-+            for (var shadowRoot of shadowRoots) {
-+              const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
-+                const elements2 = injected.querySelectorAll(parsed2, node);
-+                return elements2;
-+              }, {
-+                parsed: parsedEdits,
-+              });
-+              const shadowElementsAmount = await shadowElements.getProperty("length");
-+              queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
-+            }
++            return results;
++          };
++          var findClosedShadowRoots = findClosedShadowRoots2;
++          var shadowRootBackendIds = findClosedShadowRoots2(describedScope.node);
++          var shadowRoots = [];
++          for (var shadowRootBackendId of shadowRootBackendIds) {
++            var resolvedShadowRoot = await client.send("DOM.resolveNode", {
++              backendNodeId: shadowRootBackendId,
++              contextId: context.delegate._contextId
++            });
++            shadowRoots.push(new ElementHandle(context, resolvedShadowRoot.object.objectId));
++          }
++          for (var shadowRoot of shadowRoots) {
++            const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
++              const elements2 = injected.querySelectorAll(parsed2, node);
++              return elements2;
++            }, {
++              parsed: parsedEdits,
++            });
++            const shadowElementsAmount = await shadowElements.getProperty("length");
++            queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
 +          }
 +          const rootElements = await scope.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
 +            const elements2 = injected.querySelectorAll(parsed2, node);
@@ -1183,7 +1177,15 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 -      if (!resolved)
 +      if (!resolved) {
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-+        return continuePolling;
+         return continuePolling;
+-      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
+-        const elements = injected.querySelectorAll(info.parsed, document);
+-        if (callId)
+-          injected.markTargetElements(new Set(elements), callId);
+-        const element = elements[0] as Element | undefined;
+-        let log = '';
+-        if (elements.length > 1) {
+-          if (info.strict)
 +      }
 +
 +      try {
@@ -1206,15 +1208,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +      if (currentScopingElements.length == 0) {
 +        // TODO: Dispose?
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-         return continuePolling;
--      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
--        const elements = injected.querySelectorAll(info.parsed, document);
--        if (callId)
--          injected.markTargetElements(new Set(elements), callId);
--        const element = elements[0] as Element | undefined;
--        let log = '';
--        if (elements.length > 1) {
--          if (info.strict)
++        return continuePolling;
 +      }
 +      const resultElement = currentScopingElements[0];
 +      if (currentScopingElements.length > 1) {
@@ -1342,18 +1336,6 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +        }, { handle, options, handles });
 +      }
 +    }, 'returnAll');
-+
-+    // Default Values, if no Elements found
-+    var matches = false;
-+    var received = 0;
-+    var missingReceived = null;
-+    if (promise) {
-+      matches = promise.matches;
-+      received = promise.received;
-+      missingReceived = promise.missingReceived;
-+    } else if (options.expectedNumber === 0) {
-+      matches = true;
-+    }
  
 -    const { log, matches, received, missingReceived } = await injected.evaluate(async (injected, { info, options, callId }) => {
 -      const elements = info ? injected.querySelectorAll(info.parsed, document) : [];
@@ -1373,6 +1355,18 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 -    if (log)
 -      progress.log(log);
 -    // Note: missingReceived avoids `unexpected value "undefined"` when element was not found.
++    // Default Values, if no Elements found
++    var matches = false;
++    var received = 0;
++    var missingReceived = null;
++    if (promise) {
++      matches = promise.matches;
++      received = promise.received;
++      missingReceived = promise.missingReceived;
++    } else if (options.expectedNumber === 0) {
++      matches = true;
++    }
++
 +    // Note: missingReceived avoids unexpected value "undefined" when element was not found.
      if (matches === options.isNot) {
        lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
@@ -1439,7 +1433,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1878,170 @@
+@@ -1757,6 +1878,163 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -1474,14 +1468,10 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +    while (parsed.parts.length > 0) {
 +      var part = parsed.parts.shift();
 +      parsedEdits.parts = [part];
-+      var isUsingXPath = false;
 +      // Getting All Elements
 +      var elements = [];
 +      var elementsIndexes = [];
 +
-+      if (part.name == "xpath") {
-+        isUsingXPath = true;
-+      }
 +      if (part.name == "nth") {
 +        const partNth = Number(part.body);
 +        if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
@@ -1507,49 +1497,46 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +
 +          // Elements Queryed in the "current round"
 +          var queryingElements = [];
-+
-+          if (!isUsingXPath) {
-+            function findClosedShadowRoots(node, results = []) {
-+              if (!node || typeof node !== 'object') return results;
-+              if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
-+                for (const shadowRoot of node.shadowRoots) {
-+                  if (shadowRoot.shadowRootType === 'closed' && shadowRoot.backendNodeId) {
-+                    results.push(shadowRoot.backendNodeId);
-+                  }
-+                  findClosedShadowRoots(shadowRoot, results);
++          function findClosedShadowRoots(node, results = []) {
++            if (!node || typeof node !== 'object') return results;
++            if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
++              for (const shadowRoot of node.shadowRoots) {
++                if (shadowRoot.shadowRootType === 'closed' && shadowRoot.backendNodeId) {
++                  results.push(shadowRoot.backendNodeId);
 +                }
++                findClosedShadowRoots(shadowRoot, results);
 +              }
-+              if (node.nodeName !== 'IFRAME' && node.children && Array.isArray(node.children)) {
-+                for (const child of node.children) {
-+                  findClosedShadowRoots(child, results);
-+                }
++            }
++            if (node.nodeName !== 'IFRAME' && node.children && Array.isArray(node.children)) {
++              for (const child of node.children) {
++                findClosedShadowRoots(child, results);
 +              }
-+              return results;
 +            }
++            return results;
++          }
 +
-+            var shadowRootBackendIds = findClosedShadowRoots(describedScope.node);
-+            var shadowRoots = [];
-+            for (var shadowRootBackendId of shadowRootBackendIds) {
-+              var resolvedShadowRoot = await client.send('DOM.resolveNode', {
-+                backendNodeId: shadowRootBackendId,
-+                contextId: context.delegate._contextId
-+              });
-+              shadowRoots.push(new dom.ElementHandle(context, resolvedShadowRoot.object.objectId));
-+            }
++          var shadowRootBackendIds = findClosedShadowRoots(describedScope.node);
++          var shadowRoots = [];
++          for (var shadowRootBackendId of shadowRootBackendIds) {
++            var resolvedShadowRoot = await client.send('DOM.resolveNode', {
++              backendNodeId: shadowRootBackendId,
++              contextId: context.delegate._contextId
++            });
++            shadowRoots.push(new dom.ElementHandle(context, resolvedShadowRoot.object.objectId));
++          }
 +
-+            for (var shadowRoot of shadowRoots) {
-+              const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed, callId }]) => {
-+                const elements = injected.querySelectorAll(parsed, node);
-+                if (callId) injected.markTargetElements(new Set(elements), callId);
-+                return elements
-+              }, {
-+                parsed: parsedEdits,
-+                callId: progress.metadata.id
-+              });
++          for (var shadowRoot of shadowRoots) {
++            const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed, callId }]) => {
++             const elements = injected.querySelectorAll(parsed, node);
++              if (callId) injected.markTargetElements(new Set(elements), callId);
++              return elements
++            }, {
++              parsed: parsedEdits,
++              callId: progress.metadata.id
++            });
 +
-+              const shadowElementsAmount = await shadowElements.getProperty("length");
-+              queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
-+            }
++            const shadowElementsAmount = await shadowElements.getProperty("length");
++            queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
 +          }
 +
 +          // Document Root Elements (not in CSR)
@@ -2687,7 +2674,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frameSelectors.ts patch
        const maybeFrame = await frame._page._delegate.getContentFrame(element);
        element.dispose();
        if (!maybeFrame)
-@@ -158,6 +180,129 @@
+@@ -158,6 +180,123 @@
      const injected = await context.injectedScript();
      return { injected, info: resolved.info, frame: resolved.frame, scope: resolved.scope };
    }
@@ -2698,12 +2685,8 @@ diff -ruN playwright/packages/playwright-core/src/server/frameSelectors.ts patch
 +    while (parsed.parts.length > 0) {
 +      var part = parsed.parts.shift();
 +      parsedEdits.parts = [part];
-+      var isUsingXPath = false;
 +      var elements = [];
 +      var elementsIndexes = [];
-+      if (part.name == "xpath") {
-+        isUsingXPath = true;
-+      }
 +      if (part.name == "nth") {
 +        const partNth = Number(part.body);
 +        if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
@@ -2727,44 +2710,42 @@ diff -ruN playwright/packages/playwright-core/src/server/frameSelectors.ts patch
 +            pierce: true
 +          });
 +          var queryingElements = [];
-+          if (!isUsingXPath) {
-+            let findClosedShadowRoots2 = function(node, results = []) {
-+              if (!node || typeof node !== "object") return results;
-+              if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
-+                for (const shadowRoot2 of node.shadowRoots) {
-+                  if (shadowRoot2.shadowRootType === "closed" && shadowRoot2.backendNodeId) {
-+                    results.push(shadowRoot2.backendNodeId);
-+                  }
-+                  findClosedShadowRoots2(shadowRoot2, results);
++          let findClosedShadowRoots2 = function(node, results = []) {
++            if (!node || typeof node !== "object") return results;
++            if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
++              for (const shadowRoot2 of node.shadowRoots) {
++                if (shadowRoot2.shadowRootType === "closed" && shadowRoot2.backendNodeId) {
++                  results.push(shadowRoot2.backendNodeId);
 +                }
++                findClosedShadowRoots2(shadowRoot2, results);
 +              }
-+              if (node.nodeName !== "IFRAME" && node.children && Array.isArray(node.children)) {
-+                for (const child of node.children) {
-+                  findClosedShadowRoots2(child, results);
-+                }
++            }
++            if (node.nodeName !== "IFRAME" && node.children && Array.isArray(node.children)) {
++              for (const child of node.children) {
++                findClosedShadowRoots2(child, results);
 +              }
-+              return results;
-+            };
-+            var findClosedShadowRoots = findClosedShadowRoots2;
-+            var shadowRootBackendIds = findClosedShadowRoots2(describedScope.node);
-+            var shadowRoots = [];
-+            for (var shadowRootBackendId of shadowRootBackendIds) {
-+              var resolvedShadowRoot = await client.send("DOM.resolveNode", {
-+                backendNodeId: shadowRootBackendId,
-+                contextId: context.delegate._contextId
-+              });
-+              shadowRoots.push(new ElementHandle(context, resolvedShadowRoot.object.objectId));
 +            }
-+            for (var shadowRoot of shadowRoots) {
-+              const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
-+                const elements2 = injected.querySelectorAll(parsed2, node);
-+                return elements2;
-+              }, {
-+                parsed: parsedEdits,
-+              });
-+              const shadowElementsAmount = await shadowElements.getProperty("length");
-+              queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
-+            }
++            return results;
++          };
++          var findClosedShadowRoots = findClosedShadowRoots2;
++          var shadowRootBackendIds = findClosedShadowRoots2(describedScope.node);
++          var shadowRoots = [];
++          for (var shadowRootBackendId of shadowRootBackendIds) {
++            var resolvedShadowRoot = await client.send("DOM.resolveNode", {
++              backendNodeId: shadowRootBackendId,
++              contextId: context.delegate._contextId
++            });
++            shadowRoots.push(new ElementHandle(context, resolvedShadowRoot.object.objectId));
++          }
++          for (var shadowRoot of shadowRoots) {
++            const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
++              const elements2 = injected.querySelectorAll(parsed2, node);
++              return elements2;
++            }, {
++              parsed: parsedEdits,
++            });
++            const shadowElementsAmount = await shadowElements.getProperty("length");
++            queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
 +          }
 +          const rootElements = await scope.evaluateHandleInUtility(([injected, node, { parsed: parsed2 }]) => {
 +            const elements2 = injected.querySelectorAll(parsed2, node);
@@ -3109,7 +3090,15 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 -      if (!resolved)
 +      if (!resolved) {
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-+        return continuePolling;
+         return continuePolling;
+-      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
+-        const elements = injected.querySelectorAll(info.parsed, document);
+-        if (callId)
+-          injected.markTargetElements(new Set(elements), callId);
+-        const element = elements[0] as Element | undefined;
+-        let log = '';
+-        if (elements.length > 1) {
+-          if (info.strict)
 +      }
 +
 +      try {
@@ -3132,15 +3121,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +      if (currentScopingElements.length == 0) {
 +        // TODO: Dispose?
 +        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-         return continuePolling;
--      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
--        const elements = injected.querySelectorAll(info.parsed, document);
--        if (callId)
--          injected.markTargetElements(new Set(elements), callId);
--        const element = elements[0] as Element | undefined;
--        let log = '';
--        if (elements.length > 1) {
--          if (info.strict)
++        return continuePolling;
 +      }
 +      const resultElement = currentScopingElements[0];
 +      if (currentScopingElements.length > 1) {
@@ -3268,18 +3249,6 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +        }, { handle, options, handles });
 +      }
 +    }, 'returnAll');
-+
-+    // Default Values, if no Elements found
-+    var matches = false;
-+    var received = 0;
-+    var missingReceived = null;
-+    if (promise) {
-+      matches = promise.matches;
-+      received = promise.received;
-+      missingReceived = promise.missingReceived;
-+    } else if (options.expectedNumber === 0) {
-+      matches = true;
-+    }
  
 -    const { log, matches, received, missingReceived } = await injected.evaluate(async (injected, { info, options, callId }) => {
 -      const elements = info ? injected.querySelectorAll(info.parsed, document) : [];
@@ -3299,6 +3268,18 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 -    if (log)
 -      progress.log(log);
 -    // Note: missingReceived avoids `unexpected value "undefined"` when element was not found.
++    // Default Values, if no Elements found
++    var matches = false;
++    var received = 0;
++    var missingReceived = null;
++    if (promise) {
++      matches = promise.matches;
++      received = promise.received;
++      missingReceived = promise.missingReceived;
++    } else if (options.expectedNumber === 0) {
++      matches = true;
++    }
++
 +    // Note: missingReceived avoids unexpected value "undefined" when element was not found.
      if (matches === options.isNot) {
        lastIntermediateResult.received = missingReceived ? '<element(s) not found>' : received;
@@ -3365,7 +3346,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1878,170 @@
+@@ -1757,6 +1878,163 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -3400,14 +3381,10 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +    while (parsed.parts.length > 0) {
 +      var part = parsed.parts.shift();
 +      parsedEdits.parts = [part];
-+      var isUsingXPath = false;
 +      // Getting All Elements
 +      var elements = [];
 +      var elementsIndexes = [];
 +
-+      if (part.name == "xpath") {
-+        isUsingXPath = true;
-+      }
 +      if (part.name == "nth") {
 +        const partNth = Number(part.body);
 +        if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
@@ -3433,49 +3410,46 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +
 +          // Elements Queryed in the "current round"
 +          var queryingElements = [];
-+
-+          if (!isUsingXPath) {
-+            function findClosedShadowRoots(node, results = []) {
-+              if (!node || typeof node !== 'object') return results;
-+              if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
-+                for (const shadowRoot of node.shadowRoots) {
-+                  if (shadowRoot.shadowRootType === 'closed' && shadowRoot.backendNodeId) {
-+                    results.push(shadowRoot.backendNodeId);
-+                  }
-+                  findClosedShadowRoots(shadowRoot, results);
++          function findClosedShadowRoots(node, results = []) {
++            if (!node || typeof node !== 'object') return results;
++            if (node.shadowRoots && Array.isArray(node.shadowRoots)) {
++              for (const shadowRoot of node.shadowRoots) {
++                if (shadowRoot.shadowRootType === 'closed' && shadowRoot.backendNodeId) {
++                  results.push(shadowRoot.backendNodeId);
 +                }
++                findClosedShadowRoots(shadowRoot, results);
 +              }
-+              if (node.nodeName !== 'IFRAME' && node.children && Array.isArray(node.children)) {
-+                for (const child of node.children) {
-+                  findClosedShadowRoots(child, results);
-+                }
++            }
++            if (node.nodeName !== 'IFRAME' && node.children && Array.isArray(node.children)) {
++              for (const child of node.children) {
++                findClosedShadowRoots(child, results);
 +              }
-+              return results;
 +            }
++            return results;
++          }
 +
-+            var shadowRootBackendIds = findClosedShadowRoots(describedScope.node);
-+            var shadowRoots = [];
-+            for (var shadowRootBackendId of shadowRootBackendIds) {
-+              var resolvedShadowRoot = await client.send('DOM.resolveNode', {
-+                backendNodeId: shadowRootBackendId,
-+                contextId: context.delegate._contextId
-+              });
-+              shadowRoots.push(new dom.ElementHandle(context, resolvedShadowRoot.object.objectId));
-+            }
++          var shadowRootBackendIds = findClosedShadowRoots(describedScope.node);
++          var shadowRoots = [];
++          for (var shadowRootBackendId of shadowRootBackendIds) {
++            var resolvedShadowRoot = await client.send('DOM.resolveNode', {
++              backendNodeId: shadowRootBackendId,
++              contextId: context.delegate._contextId
++            });
++            shadowRoots.push(new dom.ElementHandle(context, resolvedShadowRoot.object.objectId));
++          }
 +
-+            for (var shadowRoot of shadowRoots) {
-+              const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed, callId }]) => {
-+                const elements = injected.querySelectorAll(parsed, node);
-+                if (callId) injected.markTargetElements(new Set(elements), callId);
-+                return elements
-+              }, {
-+                parsed: parsedEdits,
-+                callId: progress.metadata.id
-+              });
++          for (var shadowRoot of shadowRoots) {
++            const shadowElements = await shadowRoot.evaluateHandleInUtility(([injected, node, { parsed, callId }]) => {
++             const elements = injected.querySelectorAll(parsed, node);
++              if (callId) injected.markTargetElements(new Set(elements), callId);
++              return elements
++            }, {
++              parsed: parsedEdits,
++              callId: progress.metadata.id
++            });
 +
-+              const shadowElementsAmount = await shadowElements.getProperty("length");
-+              queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
-+            }
++            const shadowElementsAmount = await shadowElements.getProperty("length");
++            queryingElements.push([shadowElements, shadowElementsAmount, shadowRoot]);
 +          }
 +
 +          // Document Root Elements (not in CSR)
