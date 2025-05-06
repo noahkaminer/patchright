@@ -1089,7 +1089,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +        return handle ? handles.length : 0;
 +      }, 'returnAll');
 +      return promise;
-+    }, 100); // A bit geeky but its okay :D
++    }, 10000); // A bit geeky but its okay :D
 +    return resultPromise ? resultPromise : 0;
    }
  
@@ -1300,7 +1300,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +        });
 +
 +        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
-+      }, 100); // A bit geeky but its okay :D
++      }, 10000); // A bit geeky but its okay :D
      } catch (e) {
 -      if (js.isJavaScriptErrorInEvaluate(e) || isInvalidSelectorError(e) || isSessionClosedError(e))
 -        throw e;
@@ -3002,7 +3002,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +        return handle ? handles.length : 0;
 +      }, 'returnAll');
 +      return promise;
-+    }, 100); // A bit geeky but its okay :D
++    }, 10000); // A bit geeky but its okay :D
 +    return resultPromise ? resultPromise : 0;
    }
  
@@ -3213,7 +3213,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +        });
 +
 +        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
-+      }, 100); // A bit geeky but its okay :D
++      }, 10000); // A bit geeky but its okay :D
      } catch (e) {
 -      if (js.isJavaScriptErrorInEvaluate(e) || isInvalidSelectorError(e) || isSessionClosedError(e))
 -        throw e;
