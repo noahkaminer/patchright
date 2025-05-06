@@ -882,7 +882,7 @@ isVisibleInternalMethod.setBodyText(`try {
     });
 
     return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
-  }, 100); // A bit geeky but its okay :D
+  }, 10000); // A bit geeky but its okay :D
 } catch (e) {
   if (js.isJavaScriptErrorInEvaluate(e) || isInvalidSelectorError(e) || isSessionClosedError(e)) throw e;
   return false;
@@ -903,7 +903,7 @@ const resultPromise = await controller.run(async progress => {
     return handle ? handles.length : 0;
   }, 'returnAll');
   return promise;
-}, 100); // A bit geeky but its okay :D
+}, 10000); // A bit geeky but its okay :D
 return resultPromise ? resultPromise : 0;
 `);
 
