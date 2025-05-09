@@ -879,10 +879,10 @@ isVisibleInternalMethod.setBodyText(`try {
           return state.matches;
         }, { handle });
       }
-    });
+    }, "returnOnNotResolved");
 
     return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
-  }, 10000); // A bit geeky but its okay :D
+  }, 10000) || false; // A bit geeky but its okay :D
 } catch (e) {
   if (js.isJavaScriptErrorInEvaluate(e) || isInvalidSelectorError(e) || isSessionClosedError(e)) throw e;
   return false;
