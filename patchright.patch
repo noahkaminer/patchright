@@ -191,7 +191,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
  }
  
  class InterceptableRequest {
-@@ -606,32 +612,82 @@
+@@ -606,32 +612,83 @@
    _alreadyContinuedParams: Protocol.Fetch.continueRequestParameters | undefined;
    _fulfilled: boolean = false;
  
@@ -262,7 +262,8 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
 +      let injectionHTML = "";
 +      allInjections.forEach((script) => {
 +        let scriptId = crypto.randomBytes(22).toString('hex');
-+        injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${script.source}</script>`;
++        let scriptSource = script.source || script;
++        injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${scriptSource}</script>`;
 +      });
 +      if (response.isBase64) {
 +        response.isBase64 = false;
@@ -282,7 +283,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/chromium/crNetworkM
          responseCode: response.status,
          responsePhrase: network.statusText(response.status),
          responseHeaders,
-@@ -650,6 +706,33 @@
+@@ -650,6 +707,33 @@
        });
      });
    }
@@ -2104,7 +2105,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
  }
  
  class InterceptableRequest {
-@@ -606,32 +612,82 @@
+@@ -606,32 +612,83 @@
    _alreadyContinuedParams: Protocol.Fetch.continueRequestParameters | undefined;
    _fulfilled: boolean = false;
  
@@ -2175,7 +2176,8 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
 +      let injectionHTML = "";
 +      allInjections.forEach((script) => {
 +        let scriptId = crypto.randomBytes(22).toString('hex');
-+        injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${script.source}</script>`;
++        let scriptSource = script.source || script;
++        injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${scriptSource}</script>`;
 +      });
 +      if (response.isBase64) {
 +        response.isBase64 = false;
@@ -2195,7 +2197,7 @@ diff -ruN playwright/packages/playwright-core/src/server/chromium/crNetworkManag
          responseCode: response.status,
          responsePhrase: network.statusText(response.status),
          responseHeaders,
-@@ -650,6 +706,33 @@
+@@ -650,6 +707,33 @@
        });
      });
    }
