@@ -356,7 +356,8 @@ if (isTextHtml && allInjections.length) {
   let injectionHTML = "";
   allInjections.forEach((script) => {
     let scriptId = crypto.randomBytes(22).toString('hex');
-    injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${script.source}</script>\`;
+    let scriptSource = script.source || script;
+    injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
   });
   if (response.isBase64) {
     response.isBase64 = false;
