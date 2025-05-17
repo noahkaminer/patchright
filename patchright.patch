@@ -982,7 +982,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
    }
  
    _mainContext(): Promise<dom.FrameExecutionContext> {
-@@ -796,56 +859,47 @@
+@@ -796,58 +859,49 @@
    }
  
    async waitForSelectorInternal(progress: Progress, selector: string, performActionPreChecks: boolean, options: types.WaitForElementOptions, scope?: dom.ElementHandle): Promise<dom.ElementHandle<Element> | null> {
@@ -1070,9 +1070,12 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 -        return continuePolling;
 +        return "internal:continuepolling";
        }
-     });
+-    });
++    }, "returnOnNotResolved");
      return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
-@@ -886,7 +940,21 @@
+   }
+ 
+@@ -886,7 +940,22 @@
    }
  
    async queryCount(selector: string): Promise<number> {
@@ -1085,6 +1088,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +    const resultPromise = await controller.run(async progress => {
 +      progress.log("waiting for " + this._asLocator(selector));
 +      const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
++        if (!result) return 0;
 +        const handle = result[0];
 +        const handles = result[1];
 +        return handle ? handles.length : 0;
@@ -1095,7 +1099,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
    }
  
    async content(): Promise<string> {
-@@ -908,31 +976,38 @@
+@@ -908,31 +977,38 @@
    }
  
    async setContent(metadata: CallMetadata, html: string, options: types.NavigateOptions = {}): Promise<void> {
@@ -1157,7 +1161,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
  
    name(): string {
      return this._name || '';
-@@ -1125,50 +1200,74 @@
+@@ -1125,50 +1201,80 @@
      selector: string,
      strict: boolean | undefined,
      performActionPreChecks: boolean,
@@ -1177,16 +1181,11 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        progress.throwIfAborted();
 -      if (!resolved)
 +      if (!resolved) {
-+        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-         return continuePolling;
--      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
--        const elements = injected.querySelectorAll(info.parsed, document);
--        if (callId)
--          injected.markTargetElements(new Set(elements), callId);
--        const element = elements[0] as Element | undefined;
--        let log = '';
--        if (elements.length > 1) {
--          if (info.strict)
++        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
++        const result = await action(null);
++        return result === "internal:continuepolling" ? continuePolling2 : result;
++      }
++        return continuePolling;
 +      }
 +
 +      try {
@@ -1208,8 +1207,19 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +      const currentScopingElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, resolved.info.parsed);
 +      if (currentScopingElements.length == 0) {
 +        // TODO: Dispose?
-+        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-+        return continuePolling;
++        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
++        const result = await action(null);
++        return result === "internal:continuepolling" ? continuePolling2 : result;
++      }
+         return continuePolling;
+-      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
+-        const elements = injected.querySelectorAll(info.parsed, document);
+-        if (callId)
+-          injected.markTargetElements(new Set(elements), callId);
+-        const element = elements[0] as Element | undefined;
+-        let log = '';
+-        if (elements.length > 1) {
+-          if (info.strict)
 +      }
 +      const resultElement = currentScopingElements[0];
 +      if (currentScopingElements.length > 1) {
@@ -1264,7 +1274,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
      });
    }
  
-@@ -1319,17 +1418,34 @@
+@@ -1319,17 +1425,35 @@
  
    async isVisibleInternal(selector: string, options: types.StrictOptions = {}, scope?: dom.ElementHandle): Promise<boolean> {
      try {
@@ -1281,6 +1291,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
 +      return await controller.run(async progress => {
 +        progress.log("waiting for " + this._asLocator(selector));
 +        const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
++          if (!handle) return false;
 +          if (handle.parentNode.constructor.name == "ElementHandle") {
 +            return await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
 +              const state = handle ? injected.elementState(handle, 'visible') : {
@@ -1309,7 +1320,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        return false;
      }
    }
-@@ -1489,40 +1605,46 @@
+@@ -1489,40 +1613,46 @@
    }
  
    private async _expectInternal(progress: Progress, selector: string, options: FrameExpectParams, lastIntermediateResult: { received?: any, isSet: boolean }) {
@@ -1384,7 +1395,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
    }
  
    async _waitForFunctionExpression<R>(metadata: CallMetadata, expression: string, isFunction: boolean | undefined, arg: any, options: types.WaitForFunctionOptions, world: types.World = 'main'): Promise<js.SmartHandle<R>> {
-@@ -1632,28 +1754,27 @@
+@@ -1632,28 +1762,27 @@
      const callbackText = body.toString();
      const controller = new ProgressController(metadata, this);
      return controller.run(async progress => {
@@ -1434,7 +1445,7 @@ diff -ruN playwright/node_modules/playwright-core/src/server/frames.ts patchrigh
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1878,163 @@
+@@ -1757,6 +1886,163 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
@@ -2896,7 +2907,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
    }
  
    _mainContext(): Promise<dom.FrameExecutionContext> {
-@@ -796,56 +859,47 @@
+@@ -796,58 +859,49 @@
    }
  
    async waitForSelectorInternal(progress: Progress, selector: string, performActionPreChecks: boolean, options: types.WaitForElementOptions, scope?: dom.ElementHandle): Promise<dom.ElementHandle<Element> | null> {
@@ -2984,9 +2995,12 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 -        return continuePolling;
 +        return "internal:continuepolling";
        }
-     });
+-    });
++    }, "returnOnNotResolved");
      return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
-@@ -886,7 +940,21 @@
+   }
+ 
+@@ -886,7 +940,22 @@
    }
  
    async queryCount(selector: string): Promise<number> {
@@ -2999,6 +3013,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +    const resultPromise = await controller.run(async progress => {
 +      progress.log("waiting for " + this._asLocator(selector));
 +      const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
++        if (!result) return 0;
 +        const handle = result[0];
 +        const handles = result[1];
 +        return handle ? handles.length : 0;
@@ -3009,7 +3024,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
    }
  
    async content(): Promise<string> {
-@@ -908,31 +976,38 @@
+@@ -908,31 +977,38 @@
    }
  
    async setContent(metadata: CallMetadata, html: string, options: types.NavigateOptions = {}): Promise<void> {
@@ -3071,7 +3086,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
  
    name(): string {
      return this._name || '';
-@@ -1125,50 +1200,74 @@
+@@ -1125,50 +1201,80 @@
      selector: string,
      strict: boolean | undefined,
      performActionPreChecks: boolean,
@@ -3091,16 +3106,11 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        progress.throwIfAborted();
 -      if (!resolved)
 +      if (!resolved) {
-+        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-         return continuePolling;
--      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
--        const elements = injected.querySelectorAll(info.parsed, document);
--        if (callId)
--          injected.markTargetElements(new Set(elements), callId);
--        const element = elements[0] as Element | undefined;
--        let log = '';
--        if (elements.length > 1) {
--          if (info.strict)
++        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
++        const result = await action(null);
++        return result === "internal:continuepolling" ? continuePolling2 : result;
++      }
++        return continuePolling;
 +      }
 +
 +      try {
@@ -3122,8 +3132,19 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +      const currentScopingElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, resolved.info.parsed);
 +      if (currentScopingElements.length == 0) {
 +        // TODO: Dispose?
-+        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
-+        return continuePolling;
++        if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
++        const result = await action(null);
++        return result === "internal:continuepolling" ? continuePolling2 : result;
++      }
+         return continuePolling;
+-      const result = await resolved.injected.evaluateHandle((injected, { info, callId }) => {
+-        const elements = injected.querySelectorAll(info.parsed, document);
+-        if (callId)
+-          injected.markTargetElements(new Set(elements), callId);
+-        const element = elements[0] as Element | undefined;
+-        let log = '';
+-        if (elements.length > 1) {
+-          if (info.strict)
 +      }
 +      const resultElement = currentScopingElements[0];
 +      if (currentScopingElements.length > 1) {
@@ -3178,7 +3199,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
      });
    }
  
-@@ -1319,17 +1418,34 @@
+@@ -1319,17 +1425,35 @@
  
    async isVisibleInternal(selector: string, options: types.StrictOptions = {}, scope?: dom.ElementHandle): Promise<boolean> {
      try {
@@ -3195,6 +3216,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
 +      return await controller.run(async progress => {
 +        progress.log("waiting for " + this._asLocator(selector));
 +        const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
++          if (!handle) return false;
 +          if (handle.parentNode.constructor.name == "ElementHandle") {
 +            return await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
 +              const state = handle ? injected.elementState(handle, 'visible') : {
@@ -3223,7 +3245,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        return false;
      }
    }
-@@ -1489,40 +1605,46 @@
+@@ -1489,40 +1613,46 @@
    }
  
    private async _expectInternal(progress: Progress, selector: string, options: FrameExpectParams, lastIntermediateResult: { received?: any, isSet: boolean }) {
@@ -3298,7 +3320,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
    }
  
    async _waitForFunctionExpression<R>(metadata: CallMetadata, expression: string, isFunction: boolean | undefined, arg: any, options: types.WaitForFunctionOptions, world: types.World = 'main'): Promise<js.SmartHandle<R>> {
-@@ -1632,28 +1754,27 @@
+@@ -1632,28 +1762,27 @@
      const callbackText = body.toString();
      const controller = new ProgressController(metadata, this);
      return controller.run(async progress => {
@@ -3348,7 +3370,7 @@ diff -ruN playwright/packages/playwright-core/src/server/frames.ts patchright/pa
        });
        return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
      }, this._page._timeoutSettings.timeout(options));
-@@ -1757,6 +1878,163 @@
+@@ -1757,6 +1886,163 @@
    private _asLocator(selector: string) {
      return asLocator(this._page.attribution.playwright.options.sdkLanguage, selector);
    }
