@@ -747,7 +747,10 @@ return this.retryWithProgressAndTimeouts(progress, [0, 20, 50, 100, 100, 500], a
   });
   progress.throwIfAborted();
   if (!resolved) {
-    if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
+    if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
+    const result = await action(null);
+    return result === "internal:continuepolling" ? continuePolling2 : result;
+  }
     return continuePolling;
   }
 
@@ -770,7 +773,10 @@ return this.retryWithProgressAndTimeouts(progress, [0, 20, 50, 100, 100, 500], a
   const currentScopingElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, resolved.info.parsed);
   if (currentScopingElements.length == 0) {
     // TODO: Dispose?
-    if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') return null;
+    if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
+    const result = await action(null);
+    return result === "internal:continuepolling" ? continuePolling2 : result;
+  }
     return continuePolling;
   }
   const resultElement = currentScopingElements[0];
@@ -852,7 +858,7 @@ const promise = this._retryWithProgressIfNotConnected(progress, selector, option
   } catch (e) {
     return "internal:continuepolling";
   }
-});
+}, "returnOnNotResolved");
 return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;`)
 
 // -- isVisibleInternal Method --
@@ -863,6 +869,7 @@ isVisibleInternalMethod.setBodyText(`try {
   return await controller.run(async progress => {
     progress.log("waiting for " + this._asLocator(selector));
     const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
+      if (!handle) return false;
       if (handle.parentNode.constructor.name == "ElementHandle") {
         return await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
           const state = handle ? injected.elementState(handle, 'visible') : {
@@ -890,8 +897,8 @@ isVisibleInternalMethod.setBodyText(`try {
 }`)
 
 // -- queryCount Method --
-const queryCountlMethod = frameClass.getMethod("queryCount");
-queryCountlMethod.setBodyText(`const custom_metadata = {
+const queryCountMethod = frameClass.getMethod("queryCount");
+queryCountMethod.setBodyText(`const custom_metadata = {
   "internal": false,
   "log": []
 };
@@ -899,6 +906,7 @@ const controller = new ProgressController(custom_metadata, this);
 const resultPromise = await controller.run(async progress => {
   progress.log("waiting for " + this._asLocator(selector));
   const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
+    if (!result) return 0;
     const handle = result[0];
     const handles = result[1];
     return handle ? handles.length : 0;
