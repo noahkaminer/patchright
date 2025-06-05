@@ -392,11 +392,11 @@ continueMethod.setBodyText(`this._alreadyContinuedParams = {
 if (overrides.url && (overrides.url === 'http://patchright-init-script-inject.internal/' || overrides.url === 'https://patchright-init-script-inject.internal/')) {
   await catchDisallowedErrors(async () => {
     this._sessionManager._alreadyTrackedNetworkIds.add(this._networkId);
-    this._session.send('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
+    this._session._sendMayFail('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
   }) ;
 } else {
   await catchDisallowedErrors(async () => {
-    await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
+    await this._session._sendMayFail('Fetch.continueRequest', this._alreadyContinuedParams);
   });
 }`);
 
@@ -500,6 +500,33 @@ frameClass.addProperty({
   type: "dom.FrameExecutionContext",
 });
 
+// -- evalOnSelector Method --
+const evalOnSelectorMethod = frameClass.getMethod("evalOnSelector");
+evalOnSelectorMethod.setBodyText(`const handle = await this.selectors.query(selector, { strict }, scope);
+    if (!handle)
+      throw new Error('Failed to find element matching selector ' + selector);
+    const result = await handle.evaluateExpression(expression, { isFunction }, arg, true);
+    handle.dispose();
+    return result;`)
+
+// -- evalOnSelectorAll Method --
+const evalOnSelectorAllMethod = frameClass.getMethod("evalOnSelectorAll");
+evalOnSelectorAllMethod.addParameter({
+    name: "isolatedContext",
+    type: "boolean",
+    hasQuestionToken: true,
+});
+evalOnSelectorAllMethod.setBodyText(`try {
+    const arrayHandle = await this.selectors.queryArrayInMainWorld(selector, scope, isolatedContext);
+  const result = await arrayHandle.evaluateExpression(expression, { isFunction }, arg, isolatedContext);
+  arrayHandle.dispose();
+  return result;
+} catch (e) {
+  // Do i look like i know whats going on here?
+  if ("JSHandles can be evaluated only in the context they were created!" === e.message) return await this.evalOnSelectorAll(selector, expression, isFunction, arg, scope, isolatedContext);
+  throw e;
+}`);
+
 // -- _onClearLifecycle Method --
 const onClearLifecycleMethod = frameClass.getMethod("_onClearLifecycle");
 // Modify the constructor's body to include unassignments
@@ -579,7 +606,7 @@ const contextMethodCode = `
       await this._page._delegate._mainFrameSession._client._sendMayFail("DOM.resolveNode", { nodeId: globalDoc.nodeId })
     } */
 
-    // if (this.isDetached()) throw new Error('Frame was detached');
+    if (this.isDetached()) throw new Error('Frame was detached');
     try {
       var client = this._page._delegate._sessionForFrame(this)._client
     } catch (e) { var client = this._page._delegate._mainFrameSession._client }
@@ -759,18 +786,26 @@ return this.retryWithProgressAndTimeouts(progress, [0, 20, 50, 100, 100, 500], a
   } catch (e) {
     var client = this._page._delegate._mainFrameSession._client;
   }
-  var context = await resolved.frame._context("main");
+  var utilityContext = await resolved.frame._utilityContext();
+  var mainContext = await resolved.frame._mainContext();
 
   const documentNode = await client.send('Runtime.evaluate', {
     expression: "document",
     serializationOptions: {
       serialization: "idOnly"
     },
-    contextId: context.delegate._contextId,
+    contextId: utilityContext.delegate._contextId,
   });
-  const documentScope = new dom.ElementHandle(context, documentNode.result.objectId);
+  const documentScope = new dom.ElementHandle(utilityContext, documentNode.result.objectId);
 
-  const currentScopingElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, resolved.info.parsed);
+  let currentScopingElements;
+  try {
+    currentScopingElements = await this._customFindElementsByParsed(resolved, client, mainContext, documentScope, progress, resolved.info.parsed);
+  } catch (e) {
+    if ("JSHandles can be evaluated only in the context they were created!" === e.message) return continuePolling3;
+    await resolved.injected.evaluateHandle((injected, { error }) => { throw error }, { error: e });
+  }
+
   if (currentScopingElements.length == 0) {
     // TODO: Dispose?
     if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
@@ -864,8 +899,8 @@ return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;`)
 // -- isVisibleInternal Method --
 const isVisibleInternalMethod = frameClass.getMethod("isVisibleInternal");
 isVisibleInternalMethod.setBodyText(`try {
-  const custom_metadata = { "internal": false, "log": [] };
-  const controller = new ProgressController(custom_metadata, this);
+  const customMetadata = { "internal": false, "log": [], "method": "isVisible" };
+  const controller = new ProgressController(customMetadata, this);
   return await controller.run(async progress => {
     progress.log("waiting for " + this._asLocator(selector));
     const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
@@ -898,14 +933,15 @@ isVisibleInternalMethod.setBodyText(`try {
 
 // -- queryCount Method --
 const queryCountMethod = frameClass.getMethod("queryCount");
-queryCountMethod.setBodyText(`const custom_metadata = {
+queryCountMethod.setBodyText(`const customMetadata = {
   "internal": false,
-  "log": []
+  "log": [],
+  "method": "queryCount"
 };
-const controller = new ProgressController(custom_metadata, this);
+const controller = new ProgressController(customMetadata, this);
 const resultPromise = await controller.run(async progress => {
   progress.log("waiting for " + this._asLocator(selector));
-  const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
+  const promise = await this._retryWithProgressIfNotConnected(progress, selector, null, false, async result => {
     if (!result) return 0;
     const handle = result[0];
     const handles = result[1];
@@ -922,6 +958,27 @@ expectInternalMethod.setBodyText(`progress.log("waiting for " + this._asLocator(
 const isArray = options.expression === 'to.have.count' || options.expression.endsWith('.array');
 
 const promise = await this._retryWithProgressIfNotConnected(progress, selector, !isArray, false, async result => {
+  if (!result) {
+    if (options.expectedNumber === 0)
+      return { matches: true };
+    // expect(locator).toBeHidden() passes when there is no element.
+    if (!options.isNot && options.expression === 'to.be.hidden')
+      return { matches: true };
+    // expect(locator).not.toBeVisible() passes when there is no element.
+    if (options.isNot && options.expression === 'to.be.visible')
+      return { matches: false };
+    // expect(locator).toBeAttached({ attached: false }) passes when there is no element.
+    if (!options.isNot && options.expression === 'to.be.detached')
+      return { matches: true };
+    // expect(locator).not.toBeAttached() passes when there is no element.
+    if (options.isNot && options.expression === 'to.be.attached')
+      return { matches: false };
+    // expect(locator).not.toBeInViewport() passes when there is no element.
+    if (options.isNot && options.expression === 'to.be.in.viewport')
+      return { matches: false };
+    // When none of the above applies, expect does not match.
+    return { matches: options.isNot, missingReceived: true };
+  }
   const handle = result[0];
   const handles = result[1];
 
@@ -965,7 +1022,7 @@ callOnElementOnceMatchesMethod.setBodyText(`const callbackText = body.toString()
 const controller = new ProgressController(metadata, this);
 return controller.run(async progress => {
   progress.log("waiting for "+ this._asLocator(selector));
-  const promise = this._retryWithProgressIfNotConnected(progress, selector, false, false, async handle => {
+  const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
     if (handle.parentNode.constructor.name == "ElementHandle") {
       return await handle.parentNode.evaluateInUtility(([injected, node, { callbackText, handle, taskData }]) => {
         const callback = injected.eval(callbackText);
@@ -1015,8 +1072,8 @@ while (parsed.parts.length > 0) {
 
   if (part.name == "nth") {
     const partNth = Number(part.body);
-    if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
-      return continuePolling;
+    if (partNth > currentScopingElements.length-1 || partNth < -(currentScopingElements.length-1)) {
+          throw new Error("Can't query n-th element");
     } else {
       currentScopingElements = [currentScopingElements.at(partNth)];
       continue;
@@ -1090,7 +1147,7 @@ while (parsed.parts.length > 0) {
         callId: progress.metadata.id
       });
       const rootElementsAmount = await rootElements.getProperty("length");
-      queryingElements.push([rootElements, rootElementsAmount, resolved.injected]);
+      queryingElements.push([rootElements, rootElementsAmount, scope]);
 
       // Querying and Sorting the elements by their backendNodeId
       for (var queryedElement of queryingElements) {
@@ -1120,6 +1177,8 @@ while (parsed.parts.length > 0) {
   currentScopingElements = [];
   for (var element of elements) {
     var elemIndex = element.backendNodeId;
+    // prevent duplicate elements
+    if (elementsIndexes.includes(elemIndex)) continue
     // Sorting the Elements by their occourance in the DOM
     var elemPos = elementsIndexes.findIndex(index => index > elemIndex);
 
@@ -1149,6 +1208,33 @@ frameSelectorsSourceFile.insertStatements(0, [
 ]);
 // ------- FrameSelectors Class -------
 const frameSelectorsClass = frameSelectorsSourceFile.getClass("FrameSelectors");
+// -- queryArrayInMainWorld Method --
+const queryArrayInMainWorldMethod = frameSelectorsClass.getMethod("queryArrayInMainWorld");
+queryArrayInMainWorldMethod.addParameter({
+    name: "isolatedContext",
+    type: "boolean",
+    hasQuestionToken: true,
+});
+const queryArrayInMainWorldMethodCalls = queryArrayInMainWorldMethod.getDescendantsOfKind(SyntaxKind.CallExpression);
+for (const callExpr of queryArrayInMainWorldMethodCalls) {
+  const exprText = callExpr.getExpression().getText();
+  if (exprText === "this.resolveInjectedForSelector") {
+    const args = callExpr.getArguments();
+    if (args.length > 1 && args[1].getKind() === SyntaxKind.ObjectLiteralExpression) {
+      const objLiteral = args[1];
+
+      const mainWorldProp = objLiteral.getProperty("mainWorld");
+      if (mainWorldProp && mainWorldProp.getText() === "mainWorld: true") {
+        mainWorldProp.replaceWithText("mainWorld: !isolatedContext");
+        break;
+      }
+    }
+  }
+}
+
+
+
+
 // -- resolveFrameForSelector Method --
 const resolveFrameForSelectorMethod = frameSelectorsClass.getMethod("resolveFrameForSelector");
 const constElementDeclaration = resolveFrameForSelectorMethod.getDescendantsOfKind(SyntaxKind.VariableStatement)
@@ -1611,13 +1697,13 @@ this._exposedBindingNames = toRetain;
 await Promise.all(toRemove.map(name => this._client.send('Runtime.removeBinding', { name })));`);
 
 // -- _navigate Method --
-const navigateMethod = frameSessionClass.getMethod("_navigate");
+/*const navigateMethod = frameSessionClass.getMethod("_navigate");
 const navigateMethodBody = navigateMethod.getBody();
 // Insert the new line of code after the responseAwaitStatement
 navigateMethodBody.insertStatements(
   1,
   `this._client._sendMayFail('Page.waitForDebugger');`,
-);
+);*/
 
 // -- _onLifecycleEvent & _onFrameNavigated Method --
 for (const methodName of ["_onLifecycleEvent", "_onFrameNavigated"]) {
@@ -1910,7 +1996,7 @@ workerEvaluateExpressionHandleMethodBody.replaceWithText(
 workerEvaluateExpressionHandleMethodBody.insertStatements(
   0,
   `let context = await this._executionContextPromise;
-  if (this._context.constructor.name === "FrameExecutionContext") {
+  if (context.constructor.name === "FrameExecutionContext") {
       const frame = this._context.frame;
       if (frame) {
           if (isolatedContext) context = await frame._utilityContext();
@@ -2045,7 +2131,7 @@ jsHandleEvaluateExpressionHandleMethodBody.replaceWithText(
 jsHandleEvaluateExpressionHandleMethodBody.insertStatements(
   0,
   `let context = this._context;
-  if (this._context.constructor.name === "FrameExecutionContext") {
+  if (context.constructor.name === "FrameExecutionContext") {
       const frame = this._context.frame;
       if (frame) {
           if (isolatedContext) context = await frame._utilityContext();
@@ -2100,6 +2186,9 @@ if (frameEvaluateExpressionHandleCall && frameEvaluateExpressionHandleCall.getEx
             });
       }
 }
+// -- evaluateExpression Method --
+const frameEvalOnSelectorAllExpressionMethod = frameDispatcherClass.getMethod("evalOnSelectorAll");
+frameEvalOnSelectorAllExpressionMethod.setBodyText(`return { value: serializeResult(await this._frame.evalOnSelectorAll(params.selector, params.expression, params.isFunction, parseArgument(params.arg), null, params.isolatedContext)) };`);
 
 // ----------------------------
 // server/dispatchers/jsHandleDispatcher.ts
@@ -2242,4 +2331,5 @@ for (const type of ["Frame", "JSHandle", "Worker"]) {
     commands.evaluateExpression.parameters.isolatedContext = "boolean?";
     commands.evaluateExpressionHandle.parameters.isolatedContext = "boolean?";
 }
+protocol["Frame"].commands.evalOnSelectorAll.parameters.isolatedContext = "boolean?";
 await fs.writeFile("packages/protocol/src/protocol.yml", YAML.stringify(protocol));
