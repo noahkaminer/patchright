@@ -374,7 +374,12 @@ if (isTextHtml && allInjections.length) {
     response.body = Buffer.from(response.body, "base64").toString("utf-8");
   }
   // Inject injectionHTML into the response body after (any type of) the doctype declaration, if it exists and only once at the start
-  response.body = response.body.replace(/^<!DOCTYPE[\s\S]*?>/i, match => `${match}${injectionHTML}`);
+  if (/^<!DOCTYPE[\s\S]*?>/i.test(response.body)) {
+    response.body = response.body.replace(/^<!DOCTYPE[\s\S]*?>/i, match => `${match}${injectionHTML}`);
+  } else {
+    // If no doctype is present, inject at the start of the body
+    response.body = injectionHTML + response.body;
+  }
 }
 this._fulfilled = true;
 const body = response.isBase64 ? response.body : Buffer.from(response.body).toString('base64');
