@@ -1072,6 +1072,9 @@ while (parsed.parts.length > 0) {
 
   if (part.name == "nth") {
     const partNth = Number(part.body);
+    // Check if any Elements are currently scoped, else return empty array to continue polling
+    if (currentScopingElements.length == 0) return [];
+    // Check if the partNth is within the bounds of currentScopingElements
     if (partNth > currentScopingElements.length-1 || partNth < -(currentScopingElements.length-1)) {
           throw new Error("Can't query n-th element");
     } else {
