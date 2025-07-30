@@ -336,6 +336,7 @@ var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDoc
 if (isTextHtml && allInjections.length) {
   // I Chatted so hard for this Code
   let scriptNonce = crypto.randomBytes(22).toString('hex');
+  let useNonce = true;
   for (let i = 0; i < response.headers.length; i++) {
     if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
       // Search for an existing script-src nonce that we can hijack
@@ -345,10 +346,15 @@ if (isTextHtml && allInjections.length) {
       if (nonceMatch) {
         scriptNonce = nonceMatch[1];
       } else {
-        // Add the new nonce value to the script-src directive
-        const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
-        const newCspValue = cspValue.replace(scriptSrcRegex, \`$1 'nonce-\${scriptNonce}'$2\`);
-        response.headers[i].value = newCspValue;
+        // If there was an 'unsafe-inline' expression present the addition of 'nonce' would nullify it.
+        if (/script-src[^;]*'unsafe-inline'/.test(cspValue)) {
+          useNonce = false;
+        } else {
+          // If there is no nonce, we will inject one.
+          const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
+          const newCspValue = cspValue.replace(scriptSrcRegex, `$1 'nonce-${scriptNonce}'$2`);
+          response.headers[i].value = newCspValue;
+        }
       }
       break;
     }
@@ -357,14 +363,18 @@ if (isTextHtml && allInjections.length) {
   allInjections.forEach((script) => {
     let scriptId = crypto.randomBytes(22).toString('hex');
     let scriptSource = script.source || script;
-    injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
+    if (useNonce) {
+      injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" id="${scriptId}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${scriptSource}</script>`;
+    } else {
+      injectionHTML += `<script class="${this._page._delegate.initScriptTag}" id="${scriptId}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${scriptSource}</script>`;
+    }
   });
   if (response.isBase64) {
     response.isBase64 = false;
-    response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
-  } else {
-    response.body = injectionHTML + response.body;
+    response.body = Buffer.from(response.body, "base64").toString("utf-8");
   }
+  // Inject injectionHTML into the response body after (any type of) the doctype declaration, if it exists and only once at the start
+  response.body = response.body.replace(/^<!DOCTYPE[\s\S]*?>/i, match => `${match}${injectionHTML}`);
 }
 this._fulfilled = true;
 const body = response.isBase64 ? response.body : Buffer.from(response.body).toString('base64');
