@@ -1377,26 +1377,76 @@ while (parsed.parts.length > 0) {
             depth: -1
           });
           elementToCheck.backendNodeId = resolvedElement.node.backendNodeId;
+          elementToCheck.nodePosition = this._findElementPositionInDomTree(elementToCheck, describedScope.node, describedScope.node, "");
           elements.push(elementToCheck);
         }
       }
     }
   }
-  currentScopingElements = [];
-  for (var element of elements) {
-    var elemIndex = element.backendNodeId;
-    var elemPos = elementsIndexes.findIndex((index) => index > elemIndex);
-    if (elemPos === -1) {
-      currentScopingElements.push(element);
-      elementsIndexes.push(elemIndex);
-    } else {
-      currentScopingElements.splice(elemPos, 0, element);
-      elementsIndexes.splice(elemPos, 0, elemIndex);
+  // Sorting elements by their nodePosition, which is a index to the Element in the DOM tree
+  const getParts = (pos) => (pos?.match(/../g) || []).map(Number);
+  elements.sort((a, b) => {
+    const partA = getParts(a.nodePosition);
+    const partB = getParts(b.nodePosition);
+    const maxLength = Math.max(partA.length, partB.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      const aVal = partA[i] ?? -1;
+      const bVal = partB[i] ?? -1;
+      if (aVal !== bVal) return aVal - bVal;
     }
-  }
+    return 0;
+  });
+
+  // Remove duplicates by nodePosition, keeping the first occurrence
+  currentScopingElements = Array.from(
+    new Map(elements.map(e => [e.nodePosition, e])).values()
+  );
 }
 return currentScopingElements;`);
 
+// -- _findElementPositionInDomTree Method --
+frameSelectorsClass.addMethod({
+  name: "_findElementPositionInDomTree",
+  isAsync: false,
+  parameters: [
+    { name: "element" },
+    { name: "queryingElement" },
+    { name: "documentScope" },
+    { name: "currentIndex" },
+  ],
+});
+const findElementPositionInDomTreeMethod = frameSelectorsClass.getMethod("_findElementPositionInDomTree");
+findElementPositionInDomTreeMethod.setBodyText(`// Get Element Position in DOM Tree by Indexing it via their children indexes, like a search tree index
+    // Check if backendNodeId matches, if so, return currentIndex
+    if (element.backendNodeId === queryingElement.backendNodeId) {
+      return currentIndex;
+    }
+    // Iterating through children of queryingElement
+    for (const child of queryingElement.children || []) {
+      // Getting index of child in queryingElement's children
+      const childrenNodeIndex = queryingElement.children.indexOf(child);
+      // Further querying the child recursively and appending the children index to the currentIndex
+      const childIndex = this._findElementPositionInDomTree(element, child, documentScope, currentIndex + childrenNodeIndex.toString());
+      if (childIndex !== null) {
+        return childIndex;
+      }
+    }
+    if (queryingElement.shadowRoots && Array.isArray(queryingElement.shadowRoots)) {
+      // Basically same for CSRs, but we dont have to append its index because patchright treats CSRs like they dont exist
+      for (const shadowRoot of queryingElement.shadowRoots) {
+        if (shadowRoot.shadowRootType === "closed" && shadowRoot.backendNodeId) {
+          const shadowRootHandle = new dom.ElementHandle(documentScope, shadowRoot.backendNodeId);
+          const childIndex = this._findElementPositionInDomTree(element, shadowRootHandle, documentScope, currentIndex);
+          if (childIndex !== null) {
+            return childIndex;
+          }
+        }
+      }
+    }
+    return null;
+  }
+`);
 
 // ----------------------------
 // server/chromium/crPage.ts
