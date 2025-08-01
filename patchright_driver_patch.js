@@ -352,7 +352,7 @@ if (isTextHtml && allInjections.length) {
         } else {
           // If there is no nonce, we will inject one.
           const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
-          const newCspValue = cspValue.replace(scriptSrcRegex, `$1 'nonce-${scriptNonce}'$2`);
+          const newCspValue = cspValue.replace(scriptSrcRegex, \`\$1 'nonce-\${scriptNonce}'\$2\`);
           response.headers[i].value = newCspValue;
         }
       }
@@ -364,9 +364,9 @@ if (isTextHtml && allInjections.length) {
     let scriptId = crypto.randomBytes(22).toString('hex');
     let scriptSource = script.source || script;
     if (useNonce) {
-      injectionHTML += `<script class="${this._page._delegate.initScriptTag}" nonce="${scriptNonce}" id="${scriptId}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${scriptSource}</script>`;
+      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" id="\${scriptId}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
     } else {
-      injectionHTML += `<script class="${this._page._delegate.initScriptTag}" id="${scriptId}" type="text/javascript">document.getElementById("${scriptId}")?.remove();${scriptSource}</script>`;
+      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" id="\${scriptId}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
     }
   });
   if (response.isBase64) {
@@ -375,7 +375,7 @@ if (isTextHtml && allInjections.length) {
   }
   // Inject injectionHTML into the response body after (any type of) the doctype declaration, if it exists and only once at the start
   if (/^<!DOCTYPE[\s\S]*?>/i.test(response.body)) {
-    response.body = response.body.replace(/^<!DOCTYPE[\s\S]*?>/i, match => `${match}${injectionHTML}`);
+    response.body = response.body.replace(/^<!DOCTYPE[\s\S]*?>/i, match => \`\${match}\${injectionHTML}\`);
   } else {
     // If no doctype is present, inject at the start of the body
     response.body = injectionHTML + response.body;
@@ -532,7 +532,8 @@ evalOnSelectorAllMethod.addParameter({
     hasQuestionToken: true,
 });
 evalOnSelectorAllMethod.setBodyText(`try {
-    const arrayHandle = await this.selectors.queryArrayInMainWorld(selector, scope, isolatedContext);
+    isolatedContext = this.selectors._parseSelector(selector, { strict: false }).world !== "main" && isolatedContext;
+  const arrayHandle = await this.selectors.queryArrayInMainWorld(selector, scope, isolatedContext);
   const result = await arrayHandle.evaluateExpression(expression, { isFunction }, arg, isolatedContext);
   arrayHandle.dispose();
   return result;
@@ -541,6 +542,36 @@ evalOnSelectorAllMethod.setBodyText(`try {
   if ("JSHandles can be evaluated only in the context they were created!" === e.message) return await this.evalOnSelectorAll(selector, expression, isFunction, arg, scope, isolatedContext);
   throw e;
 }`);
+
+// -- querySelectorAll Method --
+const querySelectorAllMethod = frameClass.getMethod("querySelectorAll");
+querySelectorAllMethod.setBodyText(`const customMetadata = {
+  "internal": false,
+  "log": [],
+  "method": "queryCount"
+};
+const controller = new ProgressController(customMetadata, this);
+const resultPromise = await controller.run(async (progress) => {
+  progress.log("waiting for " + this._asLocator(selector));
+  const promise = await this._retryWithProgressIfNotConnected(progress, selector, null, false, async (result) => {
+    if (!result || !result[0]) {
+        return [];
+    }
+    return result[1];
+  }, "returnAll");
+  return promise;
+}, 1e4);
+return resultPromise ? resultPromise : 0;`);
+
+// -- querySelector Method --
+const querySelectorMethod = frameClass.getMethod("querySelector");
+querySelectorMethod.setBodyText(`return this.querySelectorAll(selector, options).then((handles) => {
+  if (handles.length === 0)
+    return null;
+  if (handles.length > 1 && options?.strict)
+    throw new Error(\`Strict mode: expected one element matching selector "\${selector}", found \${handles.length}\`);
+  return handles[0];
+});`);
 
 // -- _onClearLifecycle Method --
 const onClearLifecycleMethod = frameClass.getMethod("_onClearLifecycle");
@@ -918,27 +949,51 @@ isVisibleInternalMethod.setBodyText(`try {
   const controller = new ProgressController(customMetadata, this);
   return await controller.run(async progress => {
     progress.log("waiting for " + this._asLocator(selector));
-    const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
-      if (!handle) return false;
-      if (handle.parentNode.constructor.name == "ElementHandle") {
-        return await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
-          const state = handle ? injected.elementState(handle, 'visible') : {
-            matches: false,
-            received: 'error:notconnected'
-          };
-          return state.matches;
-        }, { handle });
+    var promise;
+    if (selector === ":scope") {
+      if (scope.parentNode.constructor.name == "ElementHandle") {
+        promise = scope.parentNode.evaluateInUtility(([injected, node, { scope: handle2 }]) => {
+          const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+        }, {
+          scope
+        });
       } else {
-        return await handle.parentNode.evaluate((injected, { handle }) => {
-          const state = handle ? injected.elementState(handle, 'visible') : {
-            matches: false,
-            received: 'error:notconnected'
-          };
-          return state.matches;
-        }, { handle });
+        promise = scope.parentNode.evaluate((injected, node, { scope: handle2 }) => {
+          const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+        }, {
+          scope
+        });
       }
-    }, "returnOnNotResolved");
-
+    } else {
+      promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async (handle) => {
+        if (!handle) return false;
+        if (handle.parentNode.constructor.name == "ElementHandle") {
+          return await handle.parentNode.evaluateInUtility(([injected, node, { handle: handle2 }]) => {
+            const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+          }, { handle });
+        } else {
+          return await handle.parentNode.evaluate((injected, { handle: handle2 }) => {
+            const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+          }, { handle });
+        }
+      }, "returnOnNotResolved");
+    }
     return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
   }, 10000) || false; // A bit geeky but its okay :D
 } catch (e) {
@@ -1037,27 +1092,52 @@ callOnElementOnceMatchesMethod.setBodyText(`const callbackText = body.toString()
 const controller = new ProgressController(metadata, this);
 return controller.run(async progress => {
   progress.log("waiting for "+ this._asLocator(selector));
-  const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
-    if (handle.parentNode.constructor.name == "ElementHandle") {
-      return await handle.parentNode.evaluateInUtility(([injected, node, { callbackText, handle, taskData }]) => {
-        const callback = injected.eval(callbackText);
-        return callback(injected, handle, taskData);
+  var promise;
+  if (selector === ":scope") {
+    if (scope.parentNode.constructor.name == "ElementHandle") {
+      promise = scope.parentNode.evaluateInUtility(([injected, node, { callbackText: callbackText2, scope: handle2, taskData: taskData2 }]) => {
+        const callback = injected.eval(callbackText2);
+        const haha = callback(injected, handle2, taskData2);
+        return haha;
       }, {
         callbackText,
-        handle,
+        scope,
         taskData
       });
     } else {
-      return await handle.parentNode.evaluate((injected, { callbackText, handle, taskData }) => {
-        const callback = injected.eval(callbackText);
-        return callback(injected, handle, taskData);
+      promise = scope.parentNode.evaluate((injected, { callbackText: callbackText2, scope: handle2, taskData: taskData2 }) => {
+        const callback = injected.eval(callbackText2);
+        return callback(injected, handle2, taskData2);
       }, {
         callbackText,
-        handle,
+        scope,
         taskData
       });
     }
-  });
+  } else {
+    promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async (handle) => {
+      if (handle.parentNode.constructor.name == "ElementHandle") {
+        return await handle.parentNode.evaluateInUtility(([injected, node, { callbackText: callbackText2, handle: handle2, taskData: taskData2 }]) => {
+          const callback = injected.eval(callbackText2);
+          const haha = callback(injected, handle2, taskData2);
+          return haha;
+        }, {
+          callbackText,
+          handle,
+          taskData
+        });
+      } else {
+        return await handle.parentNode.evaluate((injected, { callbackText: callbackText2, handle: handle2, taskData: taskData2 }) => {
+          const callback = injected.eval(callbackText2);
+          return callback(injected, handle2, taskData2);
+        }, {
+          callbackText,
+          handle,
+          taskData
+        });
+      }
+    })
+  }
   return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
 }, this._page._timeoutSettings.timeout(options));`)
 
@@ -1433,35 +1513,33 @@ frameSelectorsClass.addMethod({
 });
 const findElementPositionInDomTreeMethod = frameSelectorsClass.getMethod("_findElementPositionInDomTree");
 findElementPositionInDomTreeMethod.setBodyText(`// Get Element Position in DOM Tree by Indexing it via their children indexes, like a search tree index
-    // Check if backendNodeId matches, if so, return currentIndex
-    if (element.backendNodeId === queryingElement.backendNodeId) {
-      return currentIndex;
-    }
-    // Iterating through children of queryingElement
-    for (const child of queryingElement.children || []) {
-      // Getting index of child in queryingElement's children
-      const childrenNodeIndex = queryingElement.children.indexOf(child);
-      // Further querying the child recursively and appending the children index to the currentIndex
-      const childIndex = this._findElementPositionInDomTree(element, child, documentScope, currentIndex + childrenNodeIndex.toString());
+// Check if backendNodeId matches, if so, return currentIndex
+if (element.backendNodeId === queryingElement.backendNodeId) {
+  return currentIndex;
+}
+// Iterating through children of queryingElement
+for (const child of queryingElement.children || []) {
+  // Getting index of child in queryingElement's children
+  const childrenNodeIndex = queryingElement.children.indexOf(child);
+  // Further querying the child recursively and appending the children index to the currentIndex
+  const childIndex = this._findElementPositionInDomTree(element, child, documentScope, currentIndex + childrenNodeIndex.toString());
+  if (childIndex !== null) {
+    return childIndex;
+  }
+}
+if (queryingElement.shadowRoots && Array.isArray(queryingElement.shadowRoots)) {
+      // Basically same for CSRs, but we dont have to append its index because patchright treats CSRs like they dont exist
+  for (const shadowRoot of queryingElement.shadowRoots) {
+    if (shadowRoot.shadowRootType === "closed" && shadowRoot.backendNodeId) {
+      const shadowRootHandle = new dom.ElementHandle(documentScope, shadowRoot.backendNodeId);
+      const childIndex = this._findElementPositionInDomTree(element, shadowRootHandle, documentScope, currentIndex);
       if (childIndex !== null) {
         return childIndex;
       }
     }
-    if (queryingElement.shadowRoots && Array.isArray(queryingElement.shadowRoots)) {
-      // Basically same for CSRs, but we dont have to append its index because patchright treats CSRs like they dont exist
-      for (const shadowRoot of queryingElement.shadowRoots) {
-        if (shadowRoot.shadowRootType === "closed" && shadowRoot.backendNodeId) {
-          const shadowRootHandle = new dom.ElementHandle(documentScope, shadowRoot.backendNodeId);
-          const childIndex = this._findElementPositionInDomTree(element, shadowRootHandle, documentScope, currentIndex);
-          if (childIndex !== null) {
-            return childIndex;
-          }
-        }
-      }
-    }
-    return null;
   }
-`);
+}
+return null;`);
 
 // ----------------------------
 // server/chromium/crPage.ts
