@@ -328,7 +328,7 @@ if (constructorDeclaration) {
 // Inject HTML code
 const fulfillMethod = routeImplClass.getMethodOrThrow("fulfill");
 // Insert the custom code at the beginning of the `fulfill` method
-const customHTMLInjectCode = `const isTextHtml = response.resourceType === 'Document' || response.headers.some(header => header.name === 'content-type' && header.value.includes('text/html'));
+const customHTMLInjectCode = `const isTextHtml = response.headers.some((header) => header.name === 'content-type' && header.value.includes('text/html'));
 var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDocumentScripts];
     for (const binding of this._page._delegate._browserContext._pageBindings.values()) {
       if (!allInjections.includes(binding)) allInjections.push(binding);
@@ -336,6 +336,7 @@ var allInjections = [...this._page._delegate._mainFrameSession._evaluateOnNewDoc
 if (isTextHtml && allInjections.length) {
   // I Chatted so hard for this Code
   let scriptNonce = crypto.randomBytes(22).toString('hex');
+  let useNonce = true;
   for (let i = 0; i < response.headers.length; i++) {
     if (response.headers[i].name === 'content-security-policy' || response.headers[i].name === 'content-security-policy-report-only') {
       // Search for an existing script-src nonce that we can hijack
@@ -345,10 +346,15 @@ if (isTextHtml && allInjections.length) {
       if (nonceMatch) {
         scriptNonce = nonceMatch[1];
       } else {
-        // Add the new nonce value to the script-src directive
-        const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
-        const newCspValue = cspValue.replace(scriptSrcRegex, \`$1 'nonce-\${scriptNonce}'$2\`);
-        response.headers[i].value = newCspValue;
+        // If there was an 'unsafe-inline' expression present the addition of 'nonce' would nullify it.
+        if (/script-src[^;]*'unsafe-inline'/.test(cspValue)) {
+          useNonce = false;
+        } else {
+          // If there is no nonce, we will inject one.
+          const scriptSrcRegex = /(script-src[^;]*)(;|$)/;
+          const newCspValue = cspValue.replace(scriptSrcRegex, \`\$1 'nonce-\${scriptNonce}'\$2\`);
+          response.headers[i].value = newCspValue;
+        }
       }
       break;
     }
@@ -357,12 +363,21 @@ if (isTextHtml && allInjections.length) {
   allInjections.forEach((script) => {
     let scriptId = crypto.randomBytes(22).toString('hex');
     let scriptSource = script.source || script;
-    injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
+    if (useNonce) {
+      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" nonce="\${scriptNonce}" id="\${scriptId}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
+    } else {
+      injectionHTML += \`<script class="\${this._page._delegate.initScriptTag}" id="\${scriptId}" type="text/javascript">document.getElementById("\${scriptId}")?.remove();\${scriptSource}</script>\`;
+    }
   });
   if (response.isBase64) {
     response.isBase64 = false;
-    response.body = injectionHTML + Buffer.from(response.body, 'base64').toString('utf-8');
+    response.body = Buffer.from(response.body, "base64").toString("utf-8");
+  }
+  // Inject injectionHTML into the response body after (any type of) the doctype declaration, if it exists and only once at the start
+  if (/^<!DOCTYPE[\s\S]*?>/i.test(response.body)) {
+    response.body = response.body.replace(/^<!DOCTYPE[\s\S]*?>/i, match => \`\${match}\${injectionHTML}\`);
   } else {
+    // If no doctype is present, inject at the start of the body
     response.body = injectionHTML + response.body;
   }
 }
@@ -392,11 +407,11 @@ continueMethod.setBodyText(`this._alreadyContinuedParams = {
 if (overrides.url && (overrides.url === 'http://patchright-init-script-inject.internal/' || overrides.url === 'https://patchright-init-script-inject.internal/')) {
   await catchDisallowedErrors(async () => {
     this._sessionManager._alreadyTrackedNetworkIds.add(this._networkId);
-    this._session.send('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
+    this._session._sendMayFail('Fetch.continueRequest', { requestId: this._interceptionId, interceptResponse: true });
   }) ;
 } else {
   await catchDisallowedErrors(async () => {
-    await this._session.send('Fetch.continueRequest', this._alreadyContinuedParams);
+    await this._session._sendMayFail('Fetch.continueRequest', this._alreadyContinuedParams);
   });
 }`);
 
@@ -500,6 +515,64 @@ frameClass.addProperty({
   type: "dom.FrameExecutionContext",
 });
 
+// -- evalOnSelector Method --
+const evalOnSelectorMethod = frameClass.getMethod("evalOnSelector");
+evalOnSelectorMethod.setBodyText(`const handle = await this.selectors.query(selector, { strict }, scope);
+    if (!handle)
+      throw new Error('Failed to find element matching selector ' + selector);
+    const result = await handle.evaluateExpression(expression, { isFunction }, arg, true);
+    handle.dispose();
+    return result;`)
+
+// -- evalOnSelectorAll Method --
+const evalOnSelectorAllMethod = frameClass.getMethod("evalOnSelectorAll");
+evalOnSelectorAllMethod.addParameter({
+    name: "isolatedContext",
+    type: "boolean",
+    hasQuestionToken: true,
+});
+evalOnSelectorAllMethod.setBodyText(`try {
+    isolatedContext = this.selectors._parseSelector(selector, { strict: false }).world !== "main" && isolatedContext;
+  const arrayHandle = await this.selectors.queryArrayInMainWorld(selector, scope, isolatedContext);
+  const result = await arrayHandle.evaluateExpression(expression, { isFunction }, arg, isolatedContext);
+  arrayHandle.dispose();
+  return result;
+} catch (e) {
+  // Do i look like i know whats going on here?
+  if ("JSHandles can be evaluated only in the context they were created!" === e.message) return await this.evalOnSelectorAll(selector, expression, isFunction, arg, scope, isolatedContext);
+  throw e;
+}`);
+
+// -- querySelectorAll Method --
+const querySelectorAllMethod = frameClass.getMethod("querySelectorAll");
+querySelectorAllMethod.setBodyText(`const customMetadata = {
+  "internal": false,
+  "log": [],
+  "method": "queryCount"
+};
+const controller = new ProgressController(customMetadata, this);
+const resultPromise = await controller.run(async (progress) => {
+  progress.log("waiting for " + this._asLocator(selector));
+  const promise = await this._retryWithProgressIfNotConnected(progress, selector, null, false, async (result) => {
+    if (!result || !result[0]) {
+        return [];
+    }
+    return result[1];
+  }, "returnAll");
+  return promise;
+}, 1e4);
+return resultPromise ? resultPromise : 0;`);
+
+// -- querySelector Method --
+const querySelectorMethod = frameClass.getMethod("querySelector");
+querySelectorMethod.setBodyText(`return this.querySelectorAll(selector, options).then((handles) => {
+  if (handles.length === 0)
+    return null;
+  if (handles.length > 1 && options?.strict)
+    throw new Error(\`Strict mode: expected one element matching selector "\${selector}", found \${handles.length}\`);
+  return handles[0];
+});`);
+
 // -- _onClearLifecycle Method --
 const onClearLifecycleMethod = frameClass.getMethod("_onClearLifecycle");
 // Modify the constructor's body to include unassignments
@@ -579,7 +652,7 @@ const contextMethodCode = `
       await this._page._delegate._mainFrameSession._client._sendMayFail("DOM.resolveNode", { nodeId: globalDoc.nodeId })
     } */
 
-    // if (this.isDetached()) throw new Error('Frame was detached');
+    if (this.isDetached()) throw new Error('Frame was detached');
     try {
       var client = this._page._delegate._sessionForFrame(this)._client
     } catch (e) { var client = this._page._delegate._mainFrameSession._client }
@@ -759,18 +832,26 @@ return this.retryWithProgressAndTimeouts(progress, [0, 20, 50, 100, 100, 500], a
   } catch (e) {
     var client = this._page._delegate._mainFrameSession._client;
   }
-  var context = await resolved.frame._context("main");
+  var utilityContext = await resolved.frame._utilityContext();
+  var mainContext = await resolved.frame._mainContext();
 
   const documentNode = await client.send('Runtime.evaluate', {
     expression: "document",
     serializationOptions: {
       serialization: "idOnly"
     },
-    contextId: context.delegate._contextId,
+    contextId: utilityContext.delegate._contextId,
   });
-  const documentScope = new dom.ElementHandle(context, documentNode.result.objectId);
+  const documentScope = new dom.ElementHandle(utilityContext, documentNode.result.objectId);
 
-  const currentScopingElements = await this._customFindElementsByParsed(resolved, client, context, documentScope, progress, resolved.info.parsed);
+  let currentScopingElements;
+  try {
+    currentScopingElements = await this._customFindElementsByParsed(resolved, client, mainContext, documentScope, progress, resolved.info.parsed);
+  } catch (e) {
+    if ("JSHandles can be evaluated only in the context they were created!" === e.message) return continuePolling3;
+    await resolved.injected.evaluateHandle((injected, { error }) => { throw error }, { error: e });
+  }
+
   if (currentScopingElements.length == 0) {
     // TODO: Dispose?
     if (returnAction === 'returnOnNotResolved' || returnAction === 'returnAll') {
@@ -864,31 +945,55 @@ return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;`)
 // -- isVisibleInternal Method --
 const isVisibleInternalMethod = frameClass.getMethod("isVisibleInternal");
 isVisibleInternalMethod.setBodyText(`try {
-  const custom_metadata = { "internal": false, "log": [] };
-  const controller = new ProgressController(custom_metadata, this);
+  const customMetadata = { "internal": false, "log": [], "method": "isVisible" };
+  const controller = new ProgressController(customMetadata, this);
   return await controller.run(async progress => {
     progress.log("waiting for " + this._asLocator(selector));
-    const promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async handle => {
-      if (!handle) return false;
-      if (handle.parentNode.constructor.name == "ElementHandle") {
-        return await handle.parentNode.evaluateInUtility(([injected, node, { handle }]) => {
-          const state = handle ? injected.elementState(handle, 'visible') : {
-            matches: false,
-            received: 'error:notconnected'
-          };
-          return state.matches;
-        }, { handle });
+    var promise;
+    if (selector === ":scope") {
+      if (scope.parentNode.constructor.name == "ElementHandle") {
+        promise = scope.parentNode.evaluateInUtility(([injected, node, { scope: handle2 }]) => {
+          const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+        }, {
+          scope
+        });
       } else {
-        return await handle.parentNode.evaluate((injected, { handle }) => {
-          const state = handle ? injected.elementState(handle, 'visible') : {
-            matches: false,
-            received: 'error:notconnected'
-          };
-          return state.matches;
-        }, { handle });
+        promise = scope.parentNode.evaluate((injected, node, { scope: handle2 }) => {
+          const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+        }, {
+          scope
+        });
       }
-    }, "returnOnNotResolved");
-
+    } else {
+      promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async (handle) => {
+        if (!handle) return false;
+        if (handle.parentNode.constructor.name == "ElementHandle") {
+          return await handle.parentNode.evaluateInUtility(([injected, node, { handle: handle2 }]) => {
+            const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+          }, { handle });
+        } else {
+          return await handle.parentNode.evaluate((injected, { handle: handle2 }) => {
+            const state = handle2 ? injected.elementState(handle2, "visible") : {
+              matches: false,
+              received: "error:notconnected"
+            };
+            return state.matches;
+          }, { handle });
+        }
+      }, "returnOnNotResolved");
+    }
     return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
   }, 10000) || false; // A bit geeky but its okay :D
 } catch (e) {
@@ -898,14 +1003,15 @@ isVisibleInternalMethod.setBodyText(`try {
 
 // -- queryCount Method --
 const queryCountMethod = frameClass.getMethod("queryCount");
-queryCountMethod.setBodyText(`const custom_metadata = {
+queryCountMethod.setBodyText(`const customMetadata = {
   "internal": false,
-  "log": []
+  "log": [],
+  "method": "queryCount"
 };
-const controller = new ProgressController(custom_metadata, this);
+const controller = new ProgressController(customMetadata, this);
 const resultPromise = await controller.run(async progress => {
   progress.log("waiting for " + this._asLocator(selector));
-  const promise = await this._retryWithProgressIfNotConnected(progress, selector, false, false, async result => {
+  const promise = await this._retryWithProgressIfNotConnected(progress, selector, null, false, async result => {
     if (!result) return 0;
     const handle = result[0];
     const handles = result[1];
@@ -922,6 +1028,27 @@ expectInternalMethod.setBodyText(`progress.log("waiting for " + this._asLocator(
 const isArray = options.expression === 'to.have.count' || options.expression.endsWith('.array');
 
 const promise = await this._retryWithProgressIfNotConnected(progress, selector, !isArray, false, async result => {
+  if (!result) {
+    if (options.expectedNumber === 0)
+      return { matches: true };
+    // expect(locator).toBeHidden() passes when there is no element.
+    if (!options.isNot && options.expression === 'to.be.hidden')
+      return { matches: true };
+    // expect(locator).not.toBeVisible() passes when there is no element.
+    if (options.isNot && options.expression === 'to.be.visible')
+      return { matches: false };
+    // expect(locator).toBeAttached({ attached: false }) passes when there is no element.
+    if (!options.isNot && options.expression === 'to.be.detached')
+      return { matches: true };
+    // expect(locator).not.toBeAttached() passes when there is no element.
+    if (options.isNot && options.expression === 'to.be.attached')
+      return { matches: false };
+    // expect(locator).not.toBeInViewport() passes when there is no element.
+    if (options.isNot && options.expression === 'to.be.in.viewport')
+      return { matches: false };
+    // When none of the above applies, expect does not match.
+    return { matches: options.isNot, missingReceived: true };
+  }
   const handle = result[0];
   const handles = result[1];
 
@@ -965,27 +1092,52 @@ callOnElementOnceMatchesMethod.setBodyText(`const callbackText = body.toString()
 const controller = new ProgressController(metadata, this);
 return controller.run(async progress => {
   progress.log("waiting for "+ this._asLocator(selector));
-  const promise = this._retryWithProgressIfNotConnected(progress, selector, false, false, async handle => {
-    if (handle.parentNode.constructor.name == "ElementHandle") {
-      return await handle.parentNode.evaluateInUtility(([injected, node, { callbackText, handle, taskData }]) => {
-        const callback = injected.eval(callbackText);
-        return callback(injected, handle, taskData);
+  var promise;
+  if (selector === ":scope") {
+    if (scope.parentNode.constructor.name == "ElementHandle") {
+      promise = scope.parentNode.evaluateInUtility(([injected, node, { callbackText: callbackText2, scope: handle2, taskData: taskData2 }]) => {
+        const callback = injected.eval(callbackText2);
+        const haha = callback(injected, handle2, taskData2);
+        return haha;
       }, {
         callbackText,
-        handle,
+        scope,
         taskData
       });
     } else {
-      return await handle.parentNode.evaluate((injected, { callbackText, handle, taskData }) => {
-        const callback = injected.eval(callbackText);
-        return callback(injected, handle, taskData);
+      promise = scope.parentNode.evaluate((injected, { callbackText: callbackText2, scope: handle2, taskData: taskData2 }) => {
+        const callback = injected.eval(callbackText2);
+        return callback(injected, handle2, taskData2);
       }, {
         callbackText,
-        handle,
+        scope,
         taskData
       });
     }
-  });
+  } else {
+    promise = this._retryWithProgressIfNotConnected(progress, selector, options.strict, false, async (handle) => {
+      if (handle.parentNode.constructor.name == "ElementHandle") {
+        return await handle.parentNode.evaluateInUtility(([injected, node, { callbackText: callbackText2, handle: handle2, taskData: taskData2 }]) => {
+          const callback = injected.eval(callbackText2);
+          const haha = callback(injected, handle2, taskData2);
+          return haha;
+        }, {
+          callbackText,
+          handle,
+          taskData
+        });
+      } else {
+        return await handle.parentNode.evaluate((injected, { callbackText: callbackText2, handle: handle2, taskData: taskData2 }) => {
+          const callback = injected.eval(callbackText2);
+          return callback(injected, handle2, taskData2);
+        }, {
+          callbackText,
+          handle,
+          taskData
+        });
+      }
+    })
+  }
   return scope ? scope._context._raceAgainstContextDestroyed(promise) : promise;
 }, this._page._timeoutSettings.timeout(options));`)
 
@@ -1015,8 +1167,11 @@ while (parsed.parts.length > 0) {
 
   if (part.name == "nth") {
     const partNth = Number(part.body);
-    if (partNth > currentScopingElements.length || partNth < -currentScopingElements.length) {
-      return continuePolling;
+    // Check if any Elements are currently scoped, else return empty array to continue polling
+    if (currentScopingElements.length == 0) return [];
+    // Check if the partNth is within the bounds of currentScopingElements
+    if (partNth > currentScopingElements.length-1 || partNth < -(currentScopingElements.length-1)) {
+          throw new Error("Can't query n-th element");
     } else {
       currentScopingElements = [currentScopingElements.at(partNth)];
       continue;
@@ -1090,7 +1245,7 @@ while (parsed.parts.length > 0) {
         callId: progress.metadata.id
       });
       const rootElementsAmount = await rootElements.getProperty("length");
-      queryingElements.push([rootElements, rootElementsAmount, resolved.injected]);
+      queryingElements.push([rootElements, rootElementsAmount, scope]);
 
       // Querying and Sorting the elements by their backendNodeId
       for (var queryedElement of queryingElements) {
@@ -1120,6 +1275,8 @@ while (parsed.parts.length > 0) {
   currentScopingElements = [];
   for (var element of elements) {
     var elemIndex = element.backendNodeId;
+    // prevent duplicate elements
+    if (elementsIndexes.includes(elemIndex)) continue
     // Sorting the Elements by their occourance in the DOM
     var elemPos = elementsIndexes.findIndex(index => index > elemIndex);
 
@@ -1149,6 +1306,33 @@ frameSelectorsSourceFile.insertStatements(0, [
 ]);
 // ------- FrameSelectors Class -------
 const frameSelectorsClass = frameSelectorsSourceFile.getClass("FrameSelectors");
+// -- queryArrayInMainWorld Method --
+const queryArrayInMainWorldMethod = frameSelectorsClass.getMethod("queryArrayInMainWorld");
+queryArrayInMainWorldMethod.addParameter({
+    name: "isolatedContext",
+    type: "boolean",
+    hasQuestionToken: true,
+});
+const queryArrayInMainWorldMethodCalls = queryArrayInMainWorldMethod.getDescendantsOfKind(SyntaxKind.CallExpression);
+for (const callExpr of queryArrayInMainWorldMethodCalls) {
+  const exprText = callExpr.getExpression().getText();
+  if (exprText === "this.resolveInjectedForSelector") {
+    const args = callExpr.getArguments();
+    if (args.length > 1 && args[1].getKind() === SyntaxKind.ObjectLiteralExpression) {
+      const objLiteral = args[1];
+
+      const mainWorldProp = objLiteral.getProperty("mainWorld");
+      if (mainWorldProp && mainWorldProp.getText() === "mainWorld: true") {
+        mainWorldProp.replaceWithText("mainWorld: !isolatedContext");
+        break;
+      }
+    }
+  }
+}
+
+
+
+
 // -- resolveFrameForSelector Method --
 const resolveFrameForSelectorMethod = frameSelectorsClass.getMethod("resolveFrameForSelector");
 const constElementDeclaration = resolveFrameForSelectorMethod.getDescendantsOfKind(SyntaxKind.VariableStatement)
@@ -1288,26 +1472,74 @@ while (parsed.parts.length > 0) {
             depth: -1
           });
           elementToCheck.backendNodeId = resolvedElement.node.backendNodeId;
+          elementToCheck.nodePosition = this._findElementPositionInDomTree(elementToCheck, describedScope.node, describedScope.node, "");
           elements.push(elementToCheck);
         }
       }
     }
   }
-  currentScopingElements = [];
-  for (var element of elements) {
-    var elemIndex = element.backendNodeId;
-    var elemPos = elementsIndexes.findIndex((index) => index > elemIndex);
-    if (elemPos === -1) {
-      currentScopingElements.push(element);
-      elementsIndexes.push(elemIndex);
-    } else {
-      currentScopingElements.splice(elemPos, 0, element);
-      elementsIndexes.splice(elemPos, 0, elemIndex);
+  // Sorting elements by their nodePosition, which is a index to the Element in the DOM tree
+  const getParts = (pos) => (pos?.match(/../g) || []).map(Number);
+  elements.sort((a, b) => {
+    const partA = getParts(a.nodePosition);
+    const partB = getParts(b.nodePosition);
+    const maxLength = Math.max(partA.length, partB.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      const aVal = partA[i] ?? -1;
+      const bVal = partB[i] ?? -1;
+      if (aVal !== bVal) return aVal - bVal;
     }
-  }
+    return 0;
+  });
+
+  // Remove duplicates by nodePosition, keeping the first occurrence
+  currentScopingElements = Array.from(
+    new Map(elements.map(e => [e.nodePosition, e])).values()
+  );
 }
 return currentScopingElements;`);
 
+// -- _findElementPositionInDomTree Method --
+frameSelectorsClass.addMethod({
+  name: "_findElementPositionInDomTree",
+  isAsync: false,
+  parameters: [
+    { name: "element" },
+    { name: "queryingElement" },
+    { name: "documentScope" },
+    { name: "currentIndex" },
+  ],
+});
+const findElementPositionInDomTreeMethod = frameSelectorsClass.getMethod("_findElementPositionInDomTree");
+findElementPositionInDomTreeMethod.setBodyText(`// Get Element Position in DOM Tree by Indexing it via their children indexes, like a search tree index
+// Check if backendNodeId matches, if so, return currentIndex
+if (element.backendNodeId === queryingElement.backendNodeId) {
+  return currentIndex;
+}
+// Iterating through children of queryingElement
+for (const child of queryingElement.children || []) {
+  // Getting index of child in queryingElement's children
+  const childrenNodeIndex = queryingElement.children.indexOf(child);
+  // Further querying the child recursively and appending the children index to the currentIndex
+  const childIndex = this._findElementPositionInDomTree(element, child, documentScope, currentIndex + childrenNodeIndex.toString());
+  if (childIndex !== null) {
+    return childIndex;
+  }
+}
+if (queryingElement.shadowRoots && Array.isArray(queryingElement.shadowRoots)) {
+      // Basically same for CSRs, but we dont have to append its index because patchright treats CSRs like they dont exist
+  for (const shadowRoot of queryingElement.shadowRoots) {
+    if (shadowRoot.shadowRootType === "closed" && shadowRoot.backendNodeId) {
+      const shadowRootHandle = new dom.ElementHandle(documentScope, shadowRoot.backendNodeId);
+      const childIndex = this._findElementPositionInDomTree(element, shadowRootHandle, documentScope, currentIndex);
+      if (childIndex !== null) {
+        return childIndex;
+      }
+    }
+  }
+}
+return null;`);
 
 // ----------------------------
 // server/chromium/crPage.ts
@@ -1611,13 +1843,13 @@ this._exposedBindingNames = toRetain;
 await Promise.all(toRemove.map(name => this._client.send('Runtime.removeBinding', { name })));`);
 
 // -- _navigate Method --
-const navigateMethod = frameSessionClass.getMethod("_navigate");
+/*const navigateMethod = frameSessionClass.getMethod("_navigate");
 const navigateMethodBody = navigateMethod.getBody();
 // Insert the new line of code after the responseAwaitStatement
 navigateMethodBody.insertStatements(
   1,
   `this._client._sendMayFail('Page.waitForDebugger');`,
-);
+);*/
 
 // -- _onLifecycleEvent & _onFrameNavigated Method --
 for (const methodName of ["_onLifecycleEvent", "_onFrameNavigated"]) {
@@ -1891,7 +2123,7 @@ workerEvaluateExpressionHandleMethodBody.replaceWithText(
 workerEvaluateExpressionHandleMethodBody.insertStatements(
   0,
   `let context = await this._executionContextPromise;
-  if (this._context.constructor.name === "FrameExecutionContext") {
+  if (context.constructor.name === "FrameExecutionContext") {
       const frame = this._context.frame;
       if (frame) {
           if (isolatedContext) context = await frame._utilityContext();
@@ -2026,7 +2258,7 @@ jsHandleEvaluateExpressionHandleMethodBody.replaceWithText(
 jsHandleEvaluateExpressionHandleMethodBody.insertStatements(
   0,
   `let context = this._context;
-  if (this._context.constructor.name === "FrameExecutionContext") {
+  if (context.constructor.name === "FrameExecutionContext") {
       const frame = this._context.frame;
       if (frame) {
           if (isolatedContext) context = await frame._utilityContext();
@@ -2081,6 +2313,9 @@ if (frameEvaluateExpressionHandleCall && frameEvaluateExpressionHandleCall.getEx
             });
       }
 }
+// -- evaluateExpression Method --
+const frameEvalOnSelectorAllExpressionMethod = frameDispatcherClass.getMethod("evalOnSelectorAll");
+frameEvalOnSelectorAllExpressionMethod.setBodyText(`return { value: serializeResult(await this._frame.evalOnSelectorAll(params.selector, params.expression, params.isFunction, parseArgument(params.arg), null, params.isolatedContext)) };`);
 
 // ----------------------------
 // server/dispatchers/jsHandleDispatcher.ts
@@ -2223,4 +2458,5 @@ for (const type of ["Frame", "JSHandle", "Worker"]) {
     commands.evaluateExpression.parameters.isolatedContext = "boolean?";
     commands.evaluateExpressionHandle.parameters.isolatedContext = "boolean?";
 }
+protocol["Frame"].commands.evalOnSelectorAll.parameters.isolatedContext = "boolean?";
 await fs.writeFile("packages/protocol/src/protocol.yml", YAML.stringify(protocol));

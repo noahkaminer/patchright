@@ -10,12 +10,16 @@
     <a>
         <img src="https://img.shields.io/badge/Based%20on-Playwright-goldenrod">
     </a>
+    <a href="https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-python/actions/workflows/patchright_tests.yml">
+        <img src="https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-python/actions/workflows/patchright_tests.yml/badge.svg">
+    </a>
     <a>
         <img src="https://img.shields.io/badge/Driver-Patched-blue">
     </a>
     <a href="https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/releases/latest">
         <img alt="Patchright Version" src="https://img.shields.io/github/v/release/microsoft/playwright?display_name=release&label=Version">
     </a>
+<br/>
     <a href="https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-python">
         <img src="https://img.shields.io/badge/Package-Python-seagreen">
     </a>
@@ -90,6 +94,7 @@ Patchright passes:
 
 ## Bugs
 #### Even though we have spent a lot of time to make Patchright as stable as possible, bugs may still occur. If you encounter any bugs, please report them in the [Issues](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/issues).
+#### Patchright is now tested against the Playwright Tests after every release. See [here](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-python/actions/workflows/patchright_tests.yml)
 
 > [!WARNING]  
 > Patchright passes most, but not all the Playwright tests. Some bugs are considered impossible to solve, some are just not relevant. See the list of bugs and their explanation [here](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright/issues/30).
@@ -116,7 +121,7 @@ Patchright InitScripts can be detected by Timing Attacks. However, no antibot cu
 - [x] Implement Option to choose Execution Context (Main/Isolated).
 - [ ] Fix Fixable Bugs.
 - [x] Implement .patch Updater to easily show Patchright's patches.
-- [ ] Setup Automated Testing on new Release.
+- [x] Setup Automated Testing on new Release.
 - [ ] Implement Patchright on .NET and Java.
 
 ---
