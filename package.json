@@ -1,8 +1,14 @@
 {
   "name": "patchright",
-  "devDependencies": {
+  "version": "1.0.0",
+  "description": "A custom fork of patchright to modify Playwright's browser.",
+  "type": "module",
+  "main": "./patchright_driver_patch.js",
+  "bin": {
+    "patchright": "./patchright_driver_patch.js"
+  },
+  "dependencies": {
     "ts-morph": "^23.0.0",
     "yaml": "^2.7.0"
-  },
-  "type": "module"
+  }
 }
